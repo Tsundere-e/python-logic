@@ -1,61 +1,71 @@
 import streamlit as st
 import graphviz
 
+# Page Configuration
+st.set_page_config(page_title="Strawberry Logic Sim", page_icon="🎀")
+
+# Custom CSS for UI/UX Styling
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap');
+
+    .stApp {
+        background-color: #fff0f5;
+        font-family: 'Quicksand', sans-serif;
+    }
+
+    /* Metric Cards Styling */
+    [data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.7);
+        border: 2px solid #ffb6c1;
+        border-radius: 15px;
+        padding: 10px;
+        box-shadow: 3px 3px 10px rgba(216, 112, 147, 0.1);
+    }
+
+    /* Headers and Text */
+    h1, h2, h3 {
+        color: #d87093 !important;
+    }
+
+    /* Toggle Switch Color */
+    .st-emotion-cache-1dj0h35 {
+        background-color: #ff69b4 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 def main():
-    st.set_page_config(page_title="Logic Gate Sim", layout="centered")
+    st.title("🎀 Logic Gate Sim: Strawberry Edition 🍓")
+    st.write("### Interactive Digital Logic Simulation")
     
-    st.title("⚡ Python Logic Gate Simulator")
-    st.markdown("Interactive Boolean Algebra visualization.")
+    st.divider()
 
+    # Input Section
     col1, col2 = st.columns(2)
-
     with col1:
-        st.subheader("Input A")
-        input_a = st.toggle("Activate Signal A", value=False)
-
+        st.subheader("🍓 Input A")
+        input_a = st.toggle("Signal A", value=False)
     with col2:
-        st.subheader("Input B")
-        input_b = st.toggle("Activate Signal B", value=False)
+        st.subheader("🍓 Input B")
+        input_b = st.toggle("Signal B", value=False)
 
     a_val = 1 if input_a else 0
     b_val = 1 if input_b else 0
 
-    st.divider()
-
-    # Logic Calculations
-    res_and = a_val & b_val
-    res_or = a_val | b_val
-    res_xor = a_val ^ b_val
-    res_not = 0 if a_val == 1 else 1
-
-    # Visualization using Graphviz
-    graph = graphviz.Digraph()
-    graph.attr(rankdir='LR')
-    
-    graph.node('A', 'Input A', shape='circle', style='filled', color='lightblue' if input_a else 'lightgrey')
-    graph.node('B', 'Input B', shape='circle', style='filled', color='lightblue' if input_b else 'lightgrey')
-    
-    graph.node('AND', f'AND\n{res_and}', shape='box', style='filled', color='lightgreen' if res_and else 'white')
-    graph.node('OR', f'OR\n{res_or}', shape='box', style='filled', color='lightgreen' if res_or else 'white')
-    graph.node('XOR', f'XOR\n{res_xor}', shape='box', style='filled', color='lightgreen' if res_xor else 'white')
-    
-    graph.edge('A', 'AND')
-    graph.edge('B', 'AND')
-    graph.edge('A', 'OR')
-    graph.edge('B', 'OR')
-    graph.edge('A', 'XOR')
-    graph.edge('B', 'XOR')
-
-    st.graphviz_chart(graph)
+    # Logic Engine
+    results = {
+        "AND": a_val & b_val,
+        "OR": a_val | b_val,
+        "XOR": a_val ^ b_val,
+        "NOT_A": 1 if a_val == 0 else 0
+    }
 
     st.divider()
 
-    # Metric Dashboard
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("AND Gate", res_and, delta_color="normal")
-    m2.metric("OR Gate", res_or, delta_color="normal")
-    m3.metric("XOR Gate", res_xor, delta_color="normal")
-    m4.metric("NOT A", res_not, delta_color="inverse")
-
-if __name__ == "__main__":
-    main()
+    # Visual Flowchart
+    st.subheader("⊹ ˖ Circuit Diagram ♡⸝⸝")
+    
+    dot = graphviz.Digraph()
+    dot.attr(rankdir='LR', bgcolor='transparent')
+    dot.attr('node', fontname='Quicksand', style='filled', shape='circle', font
