@@ -83,7 +83,7 @@ st.markdown("""
     }
 
     .wave-tile {
-        width: 50%;
+        width: 100%;
         height: 100%;
         background-image: url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/wave.gif");
         background-size: cover;
@@ -247,6 +247,7 @@ with t_perf:
     col_m3.metric("Junction Temp", f"{kernel.temp}°C", "Normal")
 
 st.markdown("<p style='text-align: center; color: white; opacity: 0.4; margin-top: 60px;'>st.mowkanel / strawberry-logic-final-v4.0.0</p>", unsafe_allow_html=True)
+
 
 
 
