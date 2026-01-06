@@ -4,251 +4,282 @@ import pandas as pd
 import time
 import io
 
-# --- 1. GLOBAL SYSTEM CONFIGURATION ---
+# --- 1. CONFIGURATION & ENGINE ---
 st.set_page_config(
-    page_title="Strawberry Logic Studio | Pro Edition",
+    page_title="Strawberry Logic Studio | Pro",
     page_icon="🍓",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. ADVANCED CSS UI/UX ENGINE ---
+# --- 2. THE ULTIMATE CSS ENGINE (EXACT MATCH) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
 
+    /* Global Overlay */
     .stApp {
-        background-image: url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/download%20(15).jpg");
+        background: url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/download%20(15).jpg");
         background-size: cover;
         background-attachment: fixed;
         font-family: 'Quicksand', sans-serif;
     }
 
-    .glass-panel {
-        background: rgba(255, 255, 255, 0.85);
-        padding: 30px;
-        border-radius: 25px;
-        border: 2px solid #ffb6c1;
-        box-shadow: 0 12px 32px rgba(255, 182, 193, 0.2);
-        margin-bottom: 20px;
+    /* Fixed Card Container (Ref: unnamed (1).jpg) */
+    .card-wrapper {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        padding: 40px 0;
     }
 
-    .stMarkdown, p, span, label, h1, h2, h3 {
-        color: #8b4367 !important;
-        font-weight: 700 !important;
-    }
-
-    /* Metric Card Customization */
-    [data-testid="stMetric"] {
-        background: white !important;
-        border: 3px solid #ffb6c1 !important;
-        border-radius: 25px !important;
-        padding: 20px !important;
-        box-shadow: 6px 6px 0px #ffb6c1 !important;
-        text-align: center;
-    }
-
-    /* Refined Login Card - Matching unnamed (1).jpg */
-    .outer-card {
-        background: rgba(139, 67, 103, 0.4);
-        padding: 25px;
+    .outer-shell {
+        background: #9d6d84;
         border-radius: 35px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        backdrop-filter: blur(15px);
-        height: 520px;
-    }
-
-    .inner-login-box {
-        background: #fff0f5;
-        border-radius: 30px;
-        padding: 35px;
-        height: 100%;
-        border: 1px solid #ffb6c1;
+        padding: 25px;
+        width: 500px;
+        height: 600px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         display: flex;
         flex-direction: column;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .shell-header {
+        color: white;
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-left: 10px;
+    }
+
+    /* THE FIX: Inner Box for Streamlit Widgets */
+    .inner-white-box {
+        background: #fff0f5;
+        border-radius: 25px;
+        flex-grow: 1;
+        padding: 35px;
         position: relative;
+        border: 1px solid rgba(255,182,193,0.5);
+        display: block;
     }
 
-    .strawberry-badge {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 35px;
-    }
-
-    .terminal-box {
-        background: #2d1b24;
-        color: #ffdae0;
-        font-family: 'Fira Code', monospace;
-        padding: 20px;
-        border-radius: 15px;
-        border-left: 8px solid #ff69b4;
-        font-size: 0.85rem;
-        height: 220px;
-        overflow-y: auto;
-    }
-
-    /* Input styling to match Screenshot_57.png style */
+    /* Widget Injection Overrides */
     .stTextInput > div > div > input {
         background: white !important;
-        border-radius: 25px !important;
         border: 2px solid #ffb6c1 !important;
-        padding: 15px 25px !important;
+        border-radius: 15px !important;
+        height: 50px !important;
         color: #8b4367 !important;
-        font-weight: 500 !important;
     }
 
     .stButton > button {
         background: white !important;
         color: #ff69b4 !important;
-        border: 2px solid #ff69b4 !important;
-        border-radius: 30px !important;
-        font-weight: 700 !important;
-        width: 100%;
+        border: 2px solid #ffb6c1 !important;
+        border-radius: 25px !important;
+        width: 100% !important;
         height: 50px !important;
+        font-weight: 700 !important;
+        margin-top: 10px;
         transition: 0.3s;
     }
 
     .stButton > button:hover {
         background: #ff69b4 !important;
         color: white !important;
+        border: 2px solid white !important;
     }
 
-    /* Data Wave Animation Area */
-    .wave-container {
+    /* Visual Data Wave Container */
+    .wave-display {
         background: linear-gradient(180deg, #ff9a9e 0%, #fecfef 100%);
-        border-radius: 30px;
+        border-radius: 20px;
         height: 100%;
+        width: 100%;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        border: 1px solid white;
+        position: relative;
+    }
+
+    .berry-icon {
+        font-size: 100px;
+        filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+        animation: float 4s ease-in-out infinite;
+        z-index: 5;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-25px) rotate(5deg); }
+    }
+
+    /* Metric Styling (Ref: image_6e77b2.jpg) */
+    .metric-card {
+        background: white;
+        border: 5px solid #ff69b4;
+        border-radius: 40px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 8px 8px 0px #ffb6c1;
+        min-width: 200px;
+    }
+
+    .metric-label { font-size: 1.8rem; color: #8b4367; font-weight: 700; }
+    .metric-value { font-size: 2.5rem; color: #ff69b4; font-weight: 700; }
+
+    /* Terminal Styling */
+    .terminal {
+        background: rgba(45, 27, 36, 0.95);
+        color: #ffb6c1;
+        font-family: 'Fira Code', monospace;
+        padding: 20px;
+        border-radius: 20px;
+        height: 150px;
+        overflow-y: auto;
+        border-left: 10px solid #ff69b4;
+        font-size: 0.9rem;
     }
 
     header, footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. BACKEND LOGIC CORE ---
-class LogicController:
+# --- 3. LOGIC CONTROLLER CLASS ---
+class StrawberryEngine:
     def __init__(self):
-        self.operations = {
-            "AND": lambda a, b: a & b,
-            "OR": lambda a, b: a | b,
-            "XOR": lambda a, b: a ^ b,
-            "NAND": lambda a, b: int(not (a & b)),
-            "NOR": lambda a, b: int(not (a | b)),
-            "XNOR": lambda a, b: int(a == b)
+        self.state_a = 0
+        self.state_b = 0
+    
+    def compute(self, a, b):
+        self.state_a = int(a)
+        self.state_b = int(b)
+        return {
+            "AND": self.state_a & self.state_b,
+            "OR": self.state_a | self.state_b,
+            "XOR": self.state_a ^ self.state_b,
+            "NAND": int(not (self.state_a & self.state_b)),
+            "NOR": int(not (self.state_a | self.state_b)),
+            "XNOR": int(self.state_a == self.state_b),
+            "NOT_A": int(not self.state_a),
+            "NOT_B": int(not self.state_b)
         }
 
-    def process_signals(self, a, b):
-        results = {name: op(a, b) for name, op in self.operations.items()}
-        results["NOT_A"], results["NOT_B"] = int(not a), int(not b)
-        return results
+# --- 4. SESSION MANAGEMENT ---
+if 'engine' not in st.session_state:
+    st.session_state.engine = StrawberryEngine()
+if 'logs' not in st.session_state:
+    st.session_state.logs = []
+if 'history' not in st.session_state:
+    st.session_state.history = pd.DataFrame(columns=['Time', 'A', 'B', 'Gate', 'Output'])
 
-# --- 4. STATE AND DATA MANAGEMENT ---
-def initialize_session():
-    if 'system_logs' not in st.session_state:
-        st.session_state.system_logs = [f"[{datetime.datetime.now().strftime('%H:%M:%S')}] Core Initialized."]
-    if 'history_db' not in st.session_state:
-        st.session_state.history_db = pd.DataFrame(columns=['Timestamp', 'A', 'B', 'AND', 'OR', 'XOR'])
+def add_log(msg):
+    t = datetime.datetime.now().strftime("%H:%M:%S")
+    st.session_state.logs.append(f"> [{t}] {msg}")
+    if len(st.session_state.logs) > 5: st.session_state.logs.pop(0)
 
-def log_event(msg):
-    ts = datetime.datetime.now().strftime('%H:%M:%S')
-    st.session_state.system_logs.append(f"[{ts}] {msg}")
-    if len(st.session_state.system_logs) > 8: st.session_state.system_logs.pop(0)
-
-# --- 5. MAIN APPLICATION INTERFACE ---
+# --- 5. MAIN INTERFACE ---
 def main():
-    initialize_session()
-    logic_unit = LogicController()
+    # Header
+    st.markdown("""
+        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 25px; margin-bottom: 30px; border: 2px solid #ffb6c1;">
+            <h1 style="margin:0; color: #8b4367;">🍓 Strawberry Logic Studio Ultimate</h1>
+            <p style="margin:0; color: #ff69b4; font-weight: 700;">Hardware Simulation Framework v4.1.0</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
-    h1, h2 = st.columns([1, 4])
-    with h1: st.image("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/Gemini_Generated_Image_pt31c1pt31c1pt31.jpg", width=140)
-    with h2:
-        st.title("🍓 Strawberry Logic Studio Ultimate")
-        st.write("#### Professional Digital Integrated Circuit Simulator v4.0")
+    # Upper Controls
+    c_left, c_right = st.columns([2, 3])
+    
+    with c_left:
+        st.markdown('<div style="background:rgba(255,255,255,0.8); padding:20px; border-radius:20px; border:1px solid #ffb6c1;">', unsafe_allow_html=True)
+        st.subheader("⊹ ˖ Bus Control ♡⸝⸝")
+        s1, s2 = st.columns(2)
+        in_a = s1.toggle("Bus A Signal", key="t_a")
+        in_b = s2.toggle("Bus B Signal", key="t_b")
+        v = st.slider("Voltage (V)", 1.2, 5.0, 3.3)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with c_right:
+        st.markdown('<div style="background:rgba(255,255,255,0.8); padding:20px; border-radius:20px; border:1px solid #ffb6c1;">', unsafe_allow_html=True)
+        st.subheader("🖥️ Logic Terminal")
+        log_msg = f"SIGNAL CHANGE: A={int(in_a)} B={int(in_b)} @ {v}V"
+        if not st.session_state.logs or log_msg not in st.session_state.logs[-1]: add_log(log_msg)
+        terminal_html = "<br>".join(st.session_state.logs)
+        st.markdown(f'<div class="terminal">{terminal_html}</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # EXECUTION
+    results = st.session_state.engine.compute(in_a, in_b)
+
+    # --- THE DUAL CARDS SECTION (EXACT REFERENCE) ---
+    st.markdown('<div class="card-wrapper">', unsafe_allow_html=True)
+    
+    # LOGIN CARD
+    st.markdown('<div class="outer-shell"><div class="shell-header">× × Secure Login 🍓 ♡⸝⸝</div>', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="inner-white-box">', unsafe_allow_html=True)
+        st.text_input("Email", value="user@strawberry.com", key="login_email")
+        st.text_input("Password", type="password", value="123456", key="login_pass")
+        st.markdown('<p style="font-size: 0.8rem; color: #ff69b4; text-align: right; cursor: pointer;">Forget Password?</p>', unsafe_allow_html=True)
+        if st.button("Log In"): st.balloons()
+        st.markdown('<p style="text-align: center; font-size: 0.8rem; margin-top: 40px; color: #8b4367;">Don\'t have an account? <span style="color: #ff69b4; text-decoration: underline;">Register</span></p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    lp, rp = st.columns([2, 3])
-    with lp:
-        st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
-        st.subheader("⊹ ˖ Signal Control ♡⸝⸝")
-        csw1, csw2 = st.columns(2)
-        with csw1: sig_a = st.toggle("Primary Bus A", key="ba")
-        with csw2: sig_b = st.toggle("Primary Bus B", key="bb")
-        bit_a, bit_b = int(sig_a), int(sig_b)
-        st.divider()
-        volt = st.slider("Simulated Voltage (V)", 1.8, 5.0, 3.3)
-        if st.button("Clear History"):
-            st.session_state.history_db = st.session_state.history_db.iloc[0:0]
-            log_event("Purged system history.")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with rp:
-        st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
-        st.subheader("🖥️ Hardware Execution Logs")
-        cur_log = f"SIGNAL: A={bit_a}, B={bit_b} (V={volt}V)"
-        if st.session_state.system_logs[-1][11:] != cur_log: log_event(cur_log)
-        logs = "<br>".join(st.session_state.system_logs)
-        st.markdown(f'<div class="terminal-box">{logs}</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    res = logic_unit.process_signals(bit_a, bit_b)
-
-    # --- SHOWCASE ROW: LOGIN & DATA WAVE ---
-    st.markdown('<div class="glass-panel" style="background: transparent; box-shadow: none; border: none;">', unsafe_allow_html=True)
-    col_l, col_r = st.columns([1, 1], gap="large")
-
-    with col_l:
-        st.markdown(f'''
-            <div class="outer-card">
-                <div class="inner-login-box">
-                    <img src="https://raw.githubusercontent.com/Tsundere-e/python-logic/main/strawberry_icon_small.png" class="strawberry-badge">
-                    <h2 style="color: #8b4367; margin-bottom: 5px;">× × Secure Login 🍓 ♡⸝⸝</h2>
-                    <p style="font-size: 0.9rem; color: #8b4367; opacity: 0.7; margin-bottom: 25px;">Enter your credentials</p>
-        ''', unsafe_allow_html=True)
-        st.text_input("Email", placeholder="user@strawberry.com", label_visibility="visible", key="ui_m")
-        st.text_input("Password", type="password", placeholder="••••••••", label_visibility="visible", key="ui_p")
-        st.markdown('<p style="text-align: right; font-size: 0.8rem; color: #ff69b4; cursor: pointer;">Forget Password?</p>', unsafe_allow_html=True)
-        if st.button("Log In", key="login_trigger"): st.balloons()
-        st.markdown('<p style="text-align: center; margin-top: auto; color: #8b4367;">Don\'t have an account? <span style="color: #ff69b4; text-decoration: underline; cursor: pointer;">Register</span></p></div></div>', unsafe_allow_html=True)
-
-    with col_r:
-        st.markdown('''
-            <div class="outer-card">
-                <div class="inner-login-box" style="padding: 0; overflow: hidden; background: transparent;">
-                    <div style="padding: 25px; position: absolute; z-index: 2;">
-                        <h2 style="color: white !important;">× × Strawberry Wave 🍓 ♡⸝⸝</h2>
-                    </div>
-                    <div class="wave-container">
-                        <img src="https://raw.githubusercontent.com/Tsundere-e/python-logic/main/wave_strawberry.png" style="width: 80%; filter: drop-shadow(0 0 20px white);">
-                    </div>
-                    <div style="position: absolute; bottom: 20px; width: 100%; text-align: center; color: white; font-weight: bold;">
-                        Real-time Pulse: ACTIVE
-                    </div>
-                </div>
+    # DATA WAVE CARD
+    st.markdown('<div class="outer-shell"><div class="shell-header">× × Strawberry Data Wave 🍓 ♡⸝⸝</div>', unsafe_allow_html=True)
+    st.markdown('<div class="inner-white-box" style="padding: 15px;">', unsafe_allow_html=True)
+    st.markdown(f'''
+        <div class="wave-display">
+            <div class="berry-icon">🍓</div>
+            <div style="position: absolute; bottom: 20px; width: 100%; text-align: center; color: white;">
+                <div style="font-weight: 700; font-size: 1.1rem;">Pulse: {"HIGH" if in_a or in_b else "LOW"}</div>
+                <div style="font-size: 0.8rem; opacity: 0.8;">Heghe: 190 mΩ | 16s backout infinite</div>
             </div>
-        ''', unsafe_allow_html=True)
+        </div>
+    ''', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- METRICS ---
-    st.subheader("⊹ ˖ Digital Output Matrix ♡⸝⸝")
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("AND GATE", res["AND"])
-    m2.metric("OR GATE", res["OR"])
-    m3.metric("XOR GATE", res["XOR"])
-    m4.metric("NOT A", res["NOT_A"])
+    # --- METRIC GRID (Ref: image_6e77b2.jpg) ---
+    st.markdown("<br><h2 style='text-align: center; color: white; text-shadow: 2px 2px #ff69b4;'>⊹ ˖ Digital Matrix ♡⸝⸝</h2>", unsafe_allow_html=True)
+    
+    row1_1, row1_2, row1_3, row1_4 = st.columns(4)
+    with row1_1: st.markdown(f'<div class="metric-card"><div class="metric-label">AND</div><div class="metric-value">({results["AND"]})</div></div>', unsafe_allow_html=True)
+    with row1_2: st.markdown(f'<div class="metric-card"><div class="metric-label">OR</div><div class="metric-value">({results["OR"]})</div></div>', unsafe_allow_html=True)
+    with row1_3: st.markdown(f'<div class="metric-card"><div class="metric-label">XOR</div><div class="metric-value">({results["XOR"]})</div></div>', unsafe_allow_html=True)
+    with row1_4: st.markdown(f'<div class="metric-card"><div class="metric-label">NAND</div><div class="metric-value">({results["NAND"]})</div></div>', unsafe_allow_html=True)
 
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    row2_1, row2_2, row2_3, row2_4 = st.columns(4)
+    with row2_1: st.markdown(f'<div class="metric-card"><div class="metric-label">NOR</div><div class="metric-value">({results["NOR"]})</div></div>', unsafe_allow_html=True)
+    with row2_2: st.markdown(f'<div class="metric-card"><div class="metric-label">XNOR</div><div class="metric-value">({results["XNOR"]})</div></div>', unsafe_allow_html=True)
+    with row2_3: st.markdown(f'<div class="metric-card"><div class="metric-label">NOT A</div><div class="metric-value">({results["NOT_A"]})</div></div>', unsafe_allow_html=True)
+    with row2_4: st.markdown(f'<div class="metric-card"><div class="metric-label">NOT B</div><div class="metric-value">({results["NOT_B"]})</div></div>', unsafe_allow_html=True)
+
+    # Data Export Logic
+    new_data = {'Time': datetime.datetime.now().strftime("%H:%M:%S"), 'A': int(in_a), 'B': int(in_b), 'Gate': 'ALL', 'Output': str(results)}
+    st.session_state.history = pd.concat([st.session_state.history, pd.DataFrame([new_data])], ignore_index=True)
+    
     st.divider()
-    with st.expander("📊 System Analytics & Data Export"):
-        st.dataframe(st.session_state.history_db, use_container_width=True)
-        st.download_button("Export Session CSV", "Data...", "logic.csv")
+    with st.expander("📊 Advanced Analytics & Debugger"):
+        st.dataframe(st.session_state.history.tail(10), use_container_width=True)
+        csv = st.session_state.history.to_csv(index=False).encode('utf-8')
+        st.download_button("Download Logic Report", data=csv, file_name="strawberry_report.csv", mime="text/csv")
 
-    st.markdown("<p style='text-align: center; opacity: 0.5;'>Strawberry Logic Engine v4.0.0 | High-Fidelity UI Build</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: white; opacity: 0.6; padding: 40px;'>st.mowkanel / python-logic • Professional Build • 2026</p>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
+#kisses
