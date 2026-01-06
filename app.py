@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import time
+import base64
 
 st.set_page_config(
     page_title="Strawberry Logic Studio",
@@ -16,7 +17,7 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&family=Fira+Code:wght@400;500&display=swap');
 
     .stApp {
-        background: linear-gradient(rgba(84, 55, 71, 0.9), rgba(84, 55, 71, 0.9)), 
+        background: linear-gradient(rgba(84, 55, 71, 0.85), rgba(84, 55, 71, 0.85)), 
                     url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/download%20(15).jpg");
         background-size: cover;
         background-attachment: fixed;
@@ -24,38 +25,43 @@ st.markdown("""
     }
 
     [data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(157, 109, 132, 0.7) !important;
-        border-radius: 40px !important;
+        background: rgba(157, 109, 132, 0.6) !important;
+        border-radius: 35px !important;
         padding: 30px !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
-        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3) !important;
+        margin-bottom: 25px;
     }
 
     .stTextInput input {
-        background-color: white !important;
-        border-radius: 15px !important;
+        background-color: #fff !important;
+        border-radius: 12px !important;
         border: none !important;
-        height: 48px !important;
+        height: 45px !important;
         color: #8b4367 !important;
         font-weight: 600 !important;
     }
 
     .stButton button {
-        background: white !important;
+        background: #fff !important;
         color: #ff69b4 !important;
         border: none !important;
-        border-radius: 25px !important;
-        height: 50px !important;
-        width: 100% !important;
+        border-radius: 20px !important;
+        height: 48px !important;
+        width: 140px !important;
         font-weight: 800 !important;
         box-shadow: 0 4px 0px rgba(0,0,0,0.1) !important;
+        transition: 0.3s;
+    }
+
+    .stButton button:hover {
+        transform: scale(1.02);
     }
 
     .wave-stage {
-        height: 350px;
-        background: rgba(0,0,0,0.1);
-        border-radius: 30px;
+        height: 320px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 25px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -66,65 +72,83 @@ st.markdown("""
 
     .wave-anim {
         position: absolute;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.1) 50%, transparent 55%);
-        background-size: 200% 200%;
-        animation: waveShift 4s infinite linear;
+        width: 250%;
+        height: 250%;
+        background-image: url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/wave.png");
+        background-size: cover;
+        opacity: 0.35;
+        animation: waveLoop 12s linear infinite;
+        z-index: 1;
     }
 
-    @keyframes waveShift {
-        0% { background-position: -100% -100%; }
-        100% { background-position: 100% 100%; }
+    @keyframes waveLoop {
+        from { transform: translate(-25%, -25%) rotate(0deg); }
+        to { transform: translate(-25%, -25%) rotate(360deg); }
     }
 
     .berry-icon {
-        font-size: 110px;
+        font-size: 100px;
         z-index: 10;
         animation: floatBerry 4s ease-in-out infinite;
-        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+        filter: drop-shadow(0 15px 25px rgba(0,0,0,0.3));
     }
 
     @keyframes floatBerry {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-25px); }
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-20px) scale(1.05); }
     }
 
     .gate-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 20px;
-        margin-top: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 15px;
+        margin-top: 25px;
     }
 
     .gate-card {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
         padding: 20px;
         text-align: center;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
     }
 
+    .gate-label { color: #ffb6c1; font-weight: 700; font-size: 1rem; }
+    .gate-state { color: #fff; font-size: 2.5rem; font-weight: 900; }
+
     .terminal-output {
-        background: #1a0f14;
+        background: #120a0e;
         color: #ffb6c1;
         font-family: 'Fira Code', monospace;
         padding: 20px;
         border-radius: 15px;
         font-size: 0.85rem;
+        border-left: 5px solid #ff69b4;
+    }
+
+    .stSlider > div > div > div > div {
+        background: #ffb6c1 !important;
     }
 
     header, footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
-class HardwareCore:
-    def __init__(self, vcc):
-        self.vcc = vcc
-        self.vih = vcc * 0.7
-        self.vil = vcc * 0.3
-    def process(self, a, b):
-        ai, bi = int(a >= self.vih), int(b >= self.vih)
+class SiliconEngine:
+    def __init__(self, voltage_rail):
+        self.vcc = voltage_rail
+        self.vih = voltage_rail * 0.75
+        self.vil = voltage_rail * 0.25
+        self.resistance = 190.0
+    
+    def get_logic(self, volt):
+        if volt >= self.vih: return 1
+        if volt <= self.vil: return 0
+        return -1
+
+    def solve(self, a, b):
+        ai, bi = int(a), int(b)
         return {
             "AND": ai & bi,
             "OR": ai | bi,
@@ -132,34 +156,40 @@ class HardwareCore:
             "NAND": int(not (ai & bi)),
             "NOR": int(not (ai | bi)),
             "XNOR": int(not (ai ^ bi)),
-            "NOT_A": int(not ai),
-            "NOT_B": int(not bi)
+            "BUFF A": ai,
+            "BUFF B": bi,
+            "NOT A": int(not ai),
+            "NOT B": int(not bi)
         }
 
-if 'logs' not in st.session_state: st.session_state.logs = []
-if 'start' not in st.session_state: st.session_state.start = time.time()
+if 'signal_logs' not in st.session_state:
+    st.session_state.signal_logs = []
+if 'session_start' not in st.session_state:
+    st.session_state.session_start = time.time()
 
-st.markdown("<h1 style='text-align: center; color: white; font-size: 3rem;'>⊹ ˖ Strawberry Studio Pro ♡⸝⸝</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: white; font-size: 3.2rem; margin-bottom: 30px;'>⊹ ˖ Strawberry Studio Pro ♡⸝⸝</h1>", unsafe_allow_html=True)
 
-c1, c2 = st.columns(2)
+col1, col2 = st.columns(2)
 
-with c1:
+with col1:
     with st.container(border=True):
         st.markdown("<h3 style='color: white;'>× × Secure Login 🍓</h3>", unsafe_allow_html=True)
-        st.text_input("Email", value="engineer@strawberry.io")
-        st.text_input("Token", type="password", value="L0G1C_2026")
-        st.button("Auth Sequence")
-        st.markdown("<p style='color: #ffb6c1; font-size: 0.8rem; margin-top: 10px;'>Heghe: 190 mΩ | 16s backout infinite</p>", unsafe_allow_html=True)
+        st.text_input("User Email", value="engineer@strawberryrd.com", key="login_mail")
+        st.text_input("Access Key", type="password", value="logic_high_3.3", key="login_pass")
+        if st.button("Initialize Auth"):
+            st.toast("System Online", icon="🍓")
+        st.markdown("<p style='color: #ffb6c1; font-size: 0.85rem; margin-top: 15px; text-align: center;'>Don't have an account? <span style='text-decoration: underline;'>Register</span></p>", unsafe_allow_html=True)
 
-with c2:
+with col2:
     with st.container(border=True):
-        st.markdown("<h3 style='color: white;'>× × Data Wave 🍓</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: white;'>× × Strawberry Data Wave 🍓</h3>", unsafe_allow_html=True)
         st.markdown("""
             <div class="wave-stage">
                 <div class="wave-anim"></div>
                 <div class="berry-icon">🍓</div>
-                <div style="z-index: 10; text-align: center; color: white; margin-top: 10px;">
-                    <b style="font-size: 1.2rem;">Pulse: STREAMING</b>
+                <div style="z-index: 10; text-align: center; color: white; margin-top: 15px;">
+                    <b style="font-size: 1.1rem; letter-spacing: 1px;">Pulse: STREAMING</b><br>
+                    <span style="font-size: 0.75rem; opacity: 0.8; font-family: 'Fira Code';">Heghe: 190 mΩ | 16s backout infinite style</span>
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -167,48 +197,75 @@ with c2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 with st.container(border=True):
-    st.markdown("<h3 style='color: white; text-align: center;'>Bus & Rail Control</h3>", unsafe_allow_html=True)
-    v_rail = st.select_slider("System Voltage (VCC)", options=[1.2, 1.8, 3.3, 5.0, 12.0], value=3.3)
-    col_a, col_b = st.columns(2)
-    bus_a = col_a.slider("Bus A Signal (V)", 0.0, v_rail, v_rail)
-    bus_b = col_b.slider("Bus B Signal (V)", 0.0, v_rail, 0.0)
+    st.markdown("<h3 style='color: white; text-align: center; margin-bottom: 25px;'>× × Bus Control Center × ×</h3>", unsafe_allow_html=True)
+    vcc_val = st.select_slider("System VCC Rail (Voltage Selection)", options=[1.2, 1.8, 3.3, 5.0, 12.0], value=3.3)
     
-    hw = HardwareCore(v_rail)
-    res = hw.process(bus_a, bus_b)
+    col_bus_a, col_bus_b = st.columns(2)
+    bus_a_v = col_bus_a.slider("Bus A Signal Injection (Volts)", 0.0, vcc_val, vcc_val)
+    bus_b_v = col_bus_b.slider("Bus B Signal Injection (Volts)", 0.0, vcc_val, 0.0)
     
-    log_entry = {**res, "VCC": v_rail, "A": bus_a, "B": bus_b, "TS": datetime.datetime.now().strftime("%H:%M:%S")}
-    st.session_state.logs.append(log_entry)
-    if len(st.session_state.logs) > 100: st.session_state.logs.pop(0)
+    engine = SiliconEngine(vcc_val)
+    logic_a = engine.get_logic(bus_a_v)
+    logic_b = engine.get_logic(bus_b_v)
     
+    if logic_a == -1 or logic_b == -1:
+        st.warning("Signal Floating: Logic State Undefined (High Impedance Detection)")
+        bit_a, bit_b = 0, 0
+    else:
+        bit_a, bit_b = logic_a, logic_b
+
+    matrix = engine.solve(bit_a, bit_b)
+    
+    log_entry = {
+        **matrix, 
+        "VCC": vcc_val, 
+        "Volt_A": bus_a_v, 
+        "Volt_B": bus_b_v, 
+        "Timestamp": datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+    }
+    st.session_state.signal_logs.append(log_entry)
+    
+    if len(st.session_state.signal_logs) > 100:
+        st.session_state.signal_logs.pop(0)
+
     st.markdown('<div class="gate-grid">', unsafe_allow_html=True)
-    for k, v in res.items():
-        st.markdown(f'<div class="gate-card"><div style="color: #ffb6c1; font-weight: bold;">{k}</div><div style="color: white; font-size: 2.2rem; font-weight: 900;">{v}</div></div>', unsafe_allow_html=True)
+    for gate, state in matrix.items():
+        st.markdown(f"""
+            <div class="gate-card">
+                <div class="gate-label">{gate}</div>
+                <div class="gate-state">{state}</div>
+            </div>
+        """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-t1, t2, t3 = st.tabs(["Terminal", "Signal History", "Physical Parameters"])
+t_core, t_log, t_phys = st.tabs(["📟 Logic Kernel", "📊 Signal Dump", "🌡️ Parameters"])
 
-with t1:
-    uptime = int(time.time() - st.session_state.start)
-    st.markdown(f"""<div class="terminal-output">
-        $ probe_init --vcc {v_rail}V --uptime {uptime}s<br>
-        > ANALYZING BUS_A: {bus_a}V (STATUS: {'HIGH' if bus_a >= hw.vih else 'LOW'})<br>
-        > ANALYZING BUS_B: {bus_b}V (STATUS: {'HIGH' if bus_b >= hw.vih else 'LOW'})<br>
-        > THRESHOLD_DETECTION: VIH={hw.vih:.2f}V / VIL={hw.vil:.2f}V<br>
-        > LOGIC_CORE: {len(res)} GATES OPERATIONAL
-    </div>""", unsafe_allow_html=True)
+with t_core:
+    up_time = int(time.time() - st.session_state.session_start)
+    st.markdown(f"""
+    <div class="terminal-output">
+        $ strawberry_os --analyze --verbose --kernel_v3.2<br>
+        > RAIL_VOLTAGE_DETECTED: {vcc_val}V | SYSTEM_IMPEDANCE: {engine.resistance} mΩ<br>
+        > THRESHOLD_HIGH (VIH): {engine.vih:.2f}V | THRESHOLD_LOW (VIL): {engine.vil:.2f}V<br>
+        > SIGNAL_PROBE_A: {bus_a_v}V -> RESOLVED_LOGIC: {logic_a}<br>
+        > SIGNAL_PROBE_B: {bus_b_v}V -> RESOLVED_LOGIC: {logic_b}<br>
+        > SYSTEM_UPTIME: {up_time}s | KERNEL_STATE: 0x00_STABLE_READY<br>
+        > BUFFER_SIZE: {len(st.session_state.signal_logs)}/100 ENTRIES
+    </div>
+    """, unsafe_allow_html=True)
 
-with t2:
-    if st.session_state.logs:
-        df = pd.DataFrame(st.session_state.logs)
+with t_log:
+    if st.session_state.signal_logs:
+        df = pd.DataFrame(st.session_state.signal_logs)
         st.dataframe(df.tail(20), use_container_width=True)
-        st.download_button("Download Signal Dump", df.to_csv().encode('utf-8'), "signals.csv")
+        csv_data = df.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Export Logic Forensics Report (CSV)", csv_data, "logic_forensics_dump.csv", "text/csv")
 
-with t3:
-    col_p1, col_p2 = st.columns(2)
-    col_p1.metric("Operating VCC", f"{v_rail}V")
-    col_p1.metric("Input Impedance", "190 mΩ")
-    col_p2.metric("Propagation Delay", "12 ns")
-    col_p2.metric("Thermal Junction", "34.5 °C")
+with t_phys:
+    p1, p2, p3 = st.columns(3)
+    p1.metric("Rail Stability", "99.8%", "+0.02%", help="System voltage jitter assessment")
+    p2.metric("Power Draw", f"{(vcc_val * 0.15):.2f} mW", help="Estimated core power dissipation")
+    p3.metric("Junction Temp", "36.2 °C", "Safe", help="Simulated silicon temperature")
 
-st.markdown("<p style='text-align: center; color: white; opacity: 0.4; margin-top: 50px;'>st.mowkanel / python-logic-pro-full v3.0</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: white; opacity: 0.4; margin-top: 60px;'>st.mowkanel / python-logic (unsuate-html) v6.6.2 Final Stable</p>", unsafe_allow_html=True)
