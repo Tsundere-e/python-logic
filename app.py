@@ -224,7 +224,7 @@ def main():
         
         dot = graphviz.Digraph()
         dot.attr(rankdir='LR', bgcolor='transparent', size='4,4!', ratio='fill')
-        dot.attr('node', fontname='Quicksand
+        dot.attr('node', fontname='Quicksand'
     
     # --- PERFORMANCE METRICS ---
     st.subheader("⊹ ˖ Digital Output Matrix ♡⸝⸝")
@@ -260,6 +260,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
