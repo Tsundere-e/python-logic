@@ -187,49 +187,45 @@ def main():
     }])
     st.session_state.history_db = pd.concat([st.session_state.history_db, new_entry]).tail(10)
 
-    # --- SHOWCASE: LOGIN & DIAGRAM ---
-    col_login, col_diagram = st.columns([1, 1.4]) # Increased diagram width slightly
+    # --- SHOWCASE ROW: LOGIN & SCHEMATIC ---
+    # Posicionado logo após o cálculo dos 'results'
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    
+    col_l, col_r = st.columns([1, 1.2])
 
-    with col_login:
+    with col_l:
         st.markdown("""
-            <div style="background: rgba(255, 255, 255, 0.6); padding: 30px; border-radius: 30px; border: 2px solid #ffb6c1; height: 550px;">
-                <h3 style="text-align: center; color: #8b4367; font-family: 'Quicksand';">⊹ ˖ Login Simulator ♡⸝⸝</h3>
+            <div style="background: rgba(255, 255, 255, 0.7); padding: 25px; border-radius: 25px; border: 2px solid #ffb6c1; height: 450px;">
+                <h3 style="text-align: center; margin-bottom: 20px;">⊹ ˖ Login Simulator ♡⸝⸝</h3>
         """, unsafe_allow_html=True)
         
-        email = st.text_input("Email", placeholder="user@domain.com", key="l_email")
-        password = st.text_input("Password", type="password", key="l_pass")
-        st.markdown("<br>", unsafe_allow_html=True)
+        sim_mail = st.text_input("Email", placeholder="user@strawberry.com", key="sim_mail")
+        sim_pass = st.text_input("Password", type="password", key="sim_pass")
         
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Log In", use_container_width=True):
-            if not email or "@" not in email or "." not in email:
-                st.error("Invalid email! Check for @ and dots. 🍓")
+            if "@" not in sim_mail or "." not in sim_mail:
+                st.error("Invalid email format! 🍓")
             else:
                 st.warning("hey! its only for showcase, dont place your sensitive info on random websites!!")
         
-        st.markdown("<p style='text-align: center; margin-top: 100px; font-size: 0.8rem;'>Don't have an account? Register</p></div>", unsafe_allow_html=True)
-
-    with col_diagram:
         st.markdown("""
-            <div style="background: rgba(255, 255, 255, 0.6); padding: 25px; border-radius: 30px; border: 2px solid #ffb6c1; height: 550px;">
-                <h3 style="text-align: center; color: #8b4367; font-family: 'Quicksand';">⊹ ˖ Schematic Flow ♡⸝⸝</h3>
+                <div style="margin-top: 60px; text-align: center;">
+                    <p style="font-size: 0.8rem; opacity: 0.8;">Don't have an account? Register</p>
+                </div>
+            </div>
         """, unsafe_allow_html=True)
 
+    with col_r:
+        st.markdown("""
+            <div style="background: rgba(255, 255, 255, 0.7); padding: 20px; border-radius: 25px; border: 2px solid #ffb6c1; height: 450px; display: flex; flex-direction: column; align-items: center; overflow: hidden;">
+                <h3 style="text-align: center; margin-bottom: 10px;">⊹ ˖ Schematic ♡⸝⸝</h3>
+        """, unsafe_allow_html=True)
+        
         dot = graphviz.Digraph()
-        dot.attr(rankdir='LR', bgcolor='transparent', size='5,5!') # Adjusted size for better visibility
-        dot.attr('node', fontname='Quicksand', style='filled,rounded', fontcolor='#5a3e5a', color='#ff69b4', penwidth='3', fontsize='11')
-        dot.attr('edge', color='#ffb6c1', penwidth='2')
-
-        dot.node('A', f'IN A\n({bit_a})', shape='circle', fillcolor='#ff69b4' if signal_a else '#ffffff')
-        dot.node('B', f'IN B\n({bit_b})', shape='circle', fillcolor='#ff69b4' if signal_b else '#ffffff')
-        
-        for g in ["AND", "OR", "XOR", "NAND", "NOR", "XNOR"]:
-            dot.node(g, f'{g}\n({results[g]})', shape='rect', fillcolor='#ffc0cb' if results[g] else '#ffffff')
-            dot.edge('A', g)
-            dot.edge('B', g)
-
-        st.graphviz_chart(dot, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
+        dot.attr(rankdir='LR', bgcolor='transparent', size='4,4!', ratio='fill')
+        dot.attr('node', fontname='Quicksand
+    
     # --- PERFORMANCE METRICS ---
     st.subheader("⊹ ˖ Digital Output Matrix ♡⸝⸝")
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
@@ -264,6 +260,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
