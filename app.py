@@ -193,25 +193,21 @@ def main():
     
     # High-Definition Graphviz Configuration
     dot = graphviz.Digraph()
-    dot.attr(rankdir='LR', bgcolor='transparent', splines='ortho')
+    dot.attr(rankdir='LR', bgcolor='transparent')
     dot.attr('node', fontname='Quicksand', style='filled,rounded', 
              fontcolor='#5a3e5a', color='#ff69b4', penwidth='3', fontsize='12')
     dot.attr('edge', color='#ffb6c1', penwidth='2')
 
-    # I/O Definition
-    dot.node('A', f'INPUT A\\n({bit_a})', shape='doublecircle', fillcolor='#ff69b4' if signal_a else '#ffffff')
-    dot.node('B', f'INPUT B\\n({bit_b})', shape='doublecircle', fillcolor='#ff69b4' if signal_b else '#ffffff')
+    dot.node('A', f'INPUT A\n({bit_a})', shape='circle', fillcolor='#ff69b4' if signal_a else '#ffffff')
+    dot.node('B', f'INPUT B\n({bit_b})', shape='circle', fillcolor='#ff69b4' if signal_b else '#ffffff')
     
-    # Processing Unit Subgraph
-    with dot.subgraph(name='cluster_gates') as c:
-        c.attr(label='Logic Gates Cluster', fontcolor='#d87093', style='dashed', color='#ffb6c1')
-        for gate in ["AND", "OR", "XOR", "NAND", "NOR", "XNOR"]:
-            is_active = results[gate] == 1
-            c.node(gate, f'{gate}\\nOUT: {results[gate]}', shape='rect', 
-                   fillcolor='#ffc0cb' if is_active else '#fdfcfc')
-            dot.edge('A', gate)
-            dot.edge('B', gate)
-
+    gates_to_show = ["AND", "OR", "XOR", "NAND", "NOR", "XNOR"]
+    
+    for gate in gates_to_show:
+        active_color = '#ffc0cb' if results[gate] else '#ffffff'
+        dot.node(gate, f'{gate}\nOUT: {results[gate]}', shape='rect', fillcolor=active_color)
+        dot.edge('A', gate)
+        dot.edge('B', gate)
     st.graphviz_chart(dot, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -249,3 +245,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
