@@ -59,10 +59,9 @@ def main():
     st.divider()
     st.subheader("⊹ ˖ Circuit Diagram ♡⸝⸝")
     
+    # Diagram Generation
     dot = graphviz.Digraph()
     dot.attr(rankdir='LR', bgcolor='transparent')
-    
-    # Corrected attribute line
     dot.attr('node', fontname='Quicksand', style='filled', shape='circle', fontcolor='white')
     
     on_color = '#ff69b4'
