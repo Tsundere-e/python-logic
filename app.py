@@ -75,10 +75,8 @@ st.markdown("""
 
     .wave-wrapper {
         position: absolute;
-        display: flex;
-        width: 200%; 
+        width: 100%; 
         height: 100%;
-        animation: infinite;
         z-index: 1;
     }
 
@@ -87,8 +85,10 @@ st.markdown("""
         height: 100%;
         background-image: url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/wave.gif");
         background-size: cover;
-        background-repeat: repeat;
-        opacity: 0.5;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.6;
+        z-index: 1;
     }
 
     @keyframes waveScroll {
@@ -247,6 +247,7 @@ with t_perf:
     col_m3.metric("Junction Temp", f"{kernel.temp}°C", "Normal")
 
 st.markdown("<p style='text-align: center; color: white; opacity: 0.4; margin-top: 60px;'>st.mowkanel / strawberry-logic-final-v4.0.0</p>", unsafe_allow_html=True)
+
 
 
 
