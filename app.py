@@ -187,44 +187,49 @@ def main():
     }])
     st.session_state.history_db = pd.concat([st.session_state.history_db, new_entry]).tail(10)
 
-    # --- SCHEMATIC VISUALIZATION ---
-    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
-    st.subheader("⚡ Live Schematic Flow Analysis")
-    
-    # --- STABILIZED CIRCUIT VISUALIZATION ---
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.subheader("⚡ Live Schematic Flow Analysis")
+    # --- SHOWCASE: LOGIN & DIAGRAM ---
+    col_login, col_diagram = st.columns([1, 1.4]) # Increased diagram width slightly
 
-    # Fixed container to prevent stretching on zoom
-    st.markdown("""
-        <div style="display: flex; justify-content: center; width: 100%;">
-            <div style="max-width: 800px; width: 100%; padding: 20px; background: rgba(255, 255, 255, 0.4); border-radius: 20px; border: 1px solid #ffb6c1;">
-    """, unsafe_allow_html=True)
+    with col_login:
+        st.markdown("""
+            <div style="background: rgba(255, 255, 255, 0.6); padding: 30px; border-radius: 30px; border: 2px solid #ffb6c1; height: 550px;">
+                <h3 style="text-align: center; color: #8b4367; font-family: 'Quicksand';">⊹ ˖ Login Simulator ♡⸝⸝</h3>
+        """, unsafe_allow_html=True)
+        
+        email = st.text_input("Email", placeholder="user@domain.com", key="l_email")
+        password = st.text_input("Password", type="password", key="l_pass")
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        if st.button("Log In", use_container_width=True):
+            if not email or "@" not in email or "." not in email:
+                st.error("Invalid email! Check for @ and dots. 🍓")
+            else:
+                st.warning("hey! its only for showcase, dont place your sensitive info on random websites!!")
+        
+        st.markdown("<p style='text-align: center; margin-top: 100px; font-size: 0.8rem;'>Don't have an account? Register</p></div>", unsafe_allow_html=True)
 
-    dot = graphviz.Digraph()
-    dot.attr(rankdir='LR', bgcolor='transparent')
-    dot.attr('node', fontname='Quicksand', style='filled,rounded', 
-             fontcolor='#5a3e5a', color='#ff69b4', penwidth='3', fontsize='12')
-    dot.attr('edge', color='#ffb6c1', penwidth='2')
+    with col_diagram:
+        st.markdown("""
+            <div style="background: rgba(255, 255, 255, 0.6); padding: 25px; border-radius: 30px; border: 2px solid #ffb6c1; height: 550px;">
+                <h3 style="text-align: center; color: #8b4367; font-family: 'Quicksand';">⊹ ˖ Schematic Flow ♡⸝⸝</h3>
+        """, unsafe_allow_html=True)
 
-    # Input Nodes
-    dot.node('A', f'INPUT A\n({bit_a})', shape='circle', fillcolor='#ff69b4' if signal_a else '#ffffff')
-    dot.node('B', f'INPUT B\n({bit_b})', shape='circle', fillcolor='#ff69b4' if signal_b else '#ffffff')
-    
-    # Logic Gates
-    gates_to_show = ["AND", "OR", "XOR", "NAND", "NOR", "XNOR"]
-    
-    for gate in gates_to_show:
-        active_color = '#ffc0cb' if results[gate] else '#ffffff'
-        dot.node(gate, f'{gate}\nOUT: {results[gate]}', shape='rect', fillcolor=active_color)
-        dot.edge('A', gate)
-        dot.edge('B', gate)
+        dot = graphviz.Digraph()
+        dot.attr(rankdir='LR', bgcolor='transparent', size='5,5!') # Adjusted size for better visibility
+        dot.attr('node', fontname='Quicksand', style='filled,rounded', fontcolor='#5a3e5a', color='#ff69b4', penwidth='3', fontsize='11')
+        dot.attr('edge', color='#ffb6c1', penwidth='2')
 
-    st.graphviz_chart(dot, use_container_width=True)
+        dot.node('A', f'IN A\n({bit_a})', shape='circle', fillcolor='#ff69b4' if signal_a else '#ffffff')
+        dot.node('B', f'IN B\n({bit_b})', shape='circle', fillcolor='#ff69b4' if signal_b else '#ffffff')
+        
+        for g in ["AND", "OR", "XOR", "NAND", "NOR", "XNOR"]:
+            dot.node(g, f'{g}\n({results[g]})', shape='rect', fillcolor='#ffc0cb' if results[g] else '#ffffff')
+            dot.edge('A', g)
+            dot.edge('B', g)
 
-    st.markdown("</div></div>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
+        st.graphviz_chart(dot, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+        
     # --- PERFORMANCE METRICS ---
     st.subheader("⊹ ˖ Digital Output Matrix ♡⸝⸝")
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
@@ -259,5 +264,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
