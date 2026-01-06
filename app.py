@@ -5,7 +5,6 @@ import datetime
 import time
 import uuid
 
-# --- CONFIGURAÇÃO DE AMBIENTE ---
 st.set_page_config(
     page_title="Strawberry Logic Studio Ultra",
     page_icon="🍓",
@@ -13,7 +12,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS ENGINE (UI BLINDADA PARA VERSÃO 2026) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&family=Fira+Code:wght@400;500&display=swap');
@@ -26,7 +24,6 @@ st.markdown("""
         font-family: 'Quicksand', sans-serif;
     }
 
-    /* FIX: Seletor universal para as caixas rosas arredondadas */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: #9d6d84 !important;
         border-radius: 45px !important;
@@ -36,7 +33,6 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
-    /* Inner Box - Onde ficam os inputs */
     .inner-canvas {
         background: #fff0f5;
         border-radius: 35px;
@@ -48,7 +44,6 @@ st.markdown("""
         box-shadow: inset 0 0 15px rgba(255,182,193,0.5);
     }
 
-    /* Inputs Brancos e Arredondados */
     .stTextInput input {
         background-color: white !important;
         border: 3px solid #ffb6c1 !important;
@@ -59,7 +54,6 @@ st.markdown("""
         padding: 0 20px !important;
     }
 
-    /* Botões Profissionais */
     .stButton button {
         background: white !important;
         color: #ff69b4 !important;
@@ -77,7 +71,6 @@ st.markdown("""
         box-shadow: 0 2px 0px #ffb6c1 !important;
     }
 
-    /* Estilização da Wave */
     .wave-panel {
         background: linear-gradient(135deg, #ff8da1 0%, #ffc0d0 100%);
         border-radius: 30px;
@@ -101,7 +94,6 @@ st.markdown("""
         50% { transform: translateY(-40px) rotate(4deg); }
     }
 
-    /* Grid de Portas Lógicas */
     .gate-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -121,7 +113,6 @@ st.markdown("""
     .gate-name { font-size: 1.6rem; color: #8b4367; font-weight: 800; }
     .gate-out { font-size: 3.2rem; color: #ff69b4; font-weight: 900; }
 
-    /* Terminal Profissional */
     .terminal-box {
         background: #1a0f14;
         color: #ffb6c1;
@@ -137,7 +128,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- HARDWARE ENGINE ---
 class SiliconEngine:
     def __init__(self, vcc=3.3):
         self.vcc = vcc
@@ -147,7 +137,7 @@ class SiliconEngine:
     def get_state(self, v):
         if v >= self.vih: return 1
         if v <= self.vil: return 0
-        return -1 # Undefined
+        return -1
 
     def compute(self, a, b):
         ai, bi = int(a), int(b)
@@ -160,16 +150,13 @@ class SiliconEngine:
             "XNOR": (~(ai ^ bi)) & 1
         }
 
-# --- STATE MANAGEMENT ---
 if 'history' not in st.session_state:
     st.session_state.history = []
 if 'boot_time' not in st.session_state:
     st.session_state.boot_time = time.time()
 
-# --- HEADER ---
 st.markdown("<h1 style='text-align: center; color: white; font-size: 3.8rem; text-shadow: 6px 6px 0px #ff69b4;'>⊹ ˖ Silicon Studio Pro ♡⸝⸝</h1>", unsafe_allow_html=True)
 
-# --- CORPO PRINCIPAL ---
 c1, c2 = st.columns(2)
 
 with c1:
@@ -200,14 +187,12 @@ with c2:
         """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- RAIL DE CONTROLE ---
 st.markdown("<br><h2 style='color: white; text-align: center;'>Physical Signal Layer</h2>", unsafe_allow_html=True)
 r1, r2, r3 = st.columns([1, 1, 1])
 v_rail = r1.select_slider("System VCC", options=[1.2, 1.8, 3.3, 5.0], value=3.3)
 va = r2.slider("Line A (Volts)", 0.0, v_rail, v_rail)
 vb = r3.slider("Line B (Volts)", 0.0, v_rail, 0.0)
 
-# PROCESSAMENTO
 engine = SiliconEngine(v_rail)
 bit_a, bit_b = engine.get_state(va), engine.get_state(vb)
 
@@ -217,14 +202,8 @@ if bit_a == -1 or bit_b == -1:
 else:
     results = engine.compute(bit_a, bit_b)
 
-# LOGGING
 st.session_state.history.append({**results, "timestamp": datetime.datetime.now()})
 if len(st.session_state.history) > 50: st.session_state.history.pop(0)
-
-# GRID DE SAÍDA
-
-
-[Image of logic gate symbols and truth tables]
 
 st.markdown('<div class="gate-grid">', unsafe_allow_html=True)
 for gate, val in results.items():
@@ -236,7 +215,6 @@ for gate, val in results.items():
     """, unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ANALYTICS
 st.markdown("<br>", unsafe_allow_html=True)
 t1, t2 = st.tabs(["📟 System Terminal", "📊 Forensic Data"])
 
