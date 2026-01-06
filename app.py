@@ -1,23 +1,25 @@
 import streamlit as st
 import graphviz
 import datetime
-import time
 import pandas as pd
+import time
+import io
 
-# --- SYSTEM CONFIGURATION ---
+# --- 1. GLOBAL SYSTEM CONFIGURATION ---
 st.set_page_config(
-    page_title="Strawberry Logic Studio",
+    page_title="Strawberry Logic Studio | Pro Edition",
     page_icon="🍓",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- ADVANCED CSS ENGINE ---
+# --- 2. ADVANCED CSS UI/UX ENGINE ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
 
-    /* Global Aesthetic */
+    /* Main Application Canvas */
     .stApp {
         background-image: url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/download%20(15).jpg");
         background-size: cover;
@@ -25,220 +27,225 @@ st.markdown("""
         font-family: 'Quicksand', sans-serif;
     }
 
-    /* Professional Glassmorphism */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 2.5rem;
-        border-radius: 30px;
+    /* Professional Glassmorphism Layers */
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.88);
+        padding: 30px;
+        border-radius: 25px;
         border: 2px solid #ffb6c1;
-        box-shadow: 0 12px 40px rgba(255, 182, 193, 0.25);
-        margin-bottom: 2rem;
-        transition: all 0.4s ease;
+        box-shadow: 0 12px 32px rgba(255, 182, 193, 0.2);
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
     }
 
-    .glass-card:hover {
-        border-color: #ff69b4;
-        box-shadow: 0 15px 50px rgba(255, 105, 180, 0.3);
-    }
-
-    /* Metric Dashboard Styling */
-    [data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.98) !important;
-        border: 3px solid #ffb6c1 !important;
-        border-radius: 22px !important;
-        padding: 20px !important;
-        box-shadow: 5px 5px 0px #ffb6c1 !important;
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    
-    [data-testid="stMetric"]:hover {
-        transform: scale(1.05) translateY(-5px);
-        box-shadow: 8px 8px 0px #ff69b4 !important;
-    }
-
-    /* Typography Overrides */
-    h1, h2, h3 {
-        color: #d87093 !important;
-        font-weight: 700 !important;
-        text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.9);
-    }
-    
-    p, span, label, .stMarkdown {
+    /* High-Contrast Typography */
+    .stMarkdown, p, span, label, h1, h2, h3 {
         color: #8b4367 !important;
         font-weight: 700 !important;
     }
 
-    /* Specialized Components */
-    .st-emotion-cache-1dj0h35 {
-        background-color: #ff69b4 !important;
+    /* Metric Card Enhancements */
+    [data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 3px solid #ffb6c1 !important;
+        border-radius: 20px !important;
+        padding: 15px !important;
+        box-shadow: 4px 4px 0px #ffb6c1 !important;
     }
 
-    .console-header {
-        background: #ffb6c1;
-        color: white;
-        padding: 5px 15px;
-        border-radius: 10px 10px 0 0;
-        font-size: 0.75rem;
-        font-weight: bold;
-        text-transform: uppercase;
+    [data-testid="stMetricValue"] > div {
+        color: #ff69b4 !important;
+        font-size: 2rem !important;
     }
 
-    .console-box {
-        background: #2b2b2b;
+    /* Hardware Terminal Style */
+    .terminal-box {
+        background: #1e1e1e;
         color: #ffdae0;
-        font-family: 'Courier New', monospace;
-        padding: 15px;
-        border-radius: 0 0 10px 10px;
+        font-family: 'Fira Code', monospace;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 6px solid #ff69b4;
         font-size: 0.8rem;
-        line-height: 1.4;
-        border-bottom: 4px solid #ff69b4;
+        line-height: 1.5;
+        overflow-y: auto;
+        height: 200px;
     }
 
-    /* Interface Cleanup */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    /* System Toggles */
+    .st-emotion-cache-1dj0h35 { background-color: #ff69b4 !important; }
+    
+    /* Clean UI */
+    header, footer { visibility: hidden; }
+    .stButton>button {
+        border-radius: 12px;
+        background-color: #ffb6c1;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-weight: bold;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- CORE LOGIC ARCHITECTURE ---
-class LogicProcessor:
-    @staticmethod
-    def run_all(a, b):
-        return {
-            "AND": a & b,
-            "OR": a | b,
-            "XOR": a ^ b,
-            "NAND": 0 if (a == 1 and b == 1) else 1,
-            "NOR": 1 if (a == 0 and b == 0) else 0,
-            "XNOR": 1 if a == b else 0,
-            "NOT_A": 1 if a == 0 else 0,
-            "NOT_B": 1 if b == 0 else 0
+# --- 3. BACKEND LOGIC CORE ---
+class LogicController:
+    """Handles all boolean algebraic computations and system state"""
+    def __init__(self):
+        self.operations = {
+            "AND": lambda a, b: a & b,
+            "OR": lambda a, b: a | b,
+            "XOR": lambda a, b: a ^ b,
+            "NAND": lambda a, b: int(not (a & b)),
+            "NOR": lambda a, b: int(not (a | b)),
+            "XNOR": lambda a, b: int(a == b)
         }
 
-# --- APPLICATION STATE MANAGEMENT ---
-def initialize_state():
-    if 'boot_time' not in st.session_state:
-        st.session_state.boot_time = datetime.datetime.now()
-    if 'logs' not in st.session_state:
-        st.session_state.logs = []
-    if 'history' not in st.session_state:
-        st.session_state.history = []
+    def process_signals(self, a, b):
+        results = {name: op(a, b) for name, op in self.operations.items()}
+        results["NOT_A"] = int(not a)
+        results["NOT_B"] = int(not b)
+        return results
 
-def add_log(msg):
-    timestamp = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
-    st.session_state.logs.append(f"[{timestamp}] {msg}")
-    if len(st.session_state.logs) > 6:
-        st.session_state.logs.pop(0)
+# --- 4. STATE AND DATA MANAGEMENT ---
+def initialize_session():
+    if 'system_logs' not in st.session_state:
+        st.session_state.system_logs = [f"[{datetime.datetime.now().strftime('%H:%M:%S')}] Kernel Initialized."]
+    if 'history_db' not in st.session_state:
+        st.session_state.history_db = pd.DataFrame(columns=['Timestamp', 'A', 'B', 'AND', 'OR', 'XOR'])
+    if 'counter' not in st.session_state:
+        st.session_state.counter = 0
 
-# --- MAIN APP INTERFACE ---
+def log_event(msg):
+    ts = datetime.datetime.now().strftime('%H:%M:%S')
+    st.session_state.system_logs.append(f"[{ts}] {msg}")
+    if len(st.session_state.system_logs) > 8:
+        st.session_state.system_logs.pop(0)
+
+# --- 5. MAIN APPLICATION INTERFACE ---
 def main():
-    initialize_state()
-    processor = LogicProcessor()
+    initialize_session()
+    logic_unit = LogicController()
 
-    # --- BRANDING HEADER ---
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    head_left, head_right = st.columns([1, 5])
-    with head_left:
-        st.image("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/Gemini_Generated_Image_pt31c1pt31c1pt31.jpg", width=130)
-    with head_right:
-        st.title("🍓 Strawberry Logic Studio Pro")
-        st.markdown("##### High-Performance Digital Logic Simulation & Circuit Analysis Engine")
-        st.caption(f"System Online since {st.session_state.boot_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    # --- TOP BRANDING SECTION ---
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    head1, head2 = st.columns([1, 4])
+    with head1:
+        st.image("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/Gemini_Generated_Image_pt31c1pt31c1pt31.jpg", width=140)
+    with head2:
+        st.title("🍓 Strawberry Logic Studio Ultimate")
+        st.write("#### Professional Digital Integrated Circuit Simulator v4.0")
+        st.caption(f"Hardware Status: Operational | System Time: {datetime.datetime.now().strftime('%Y-%m-%d')}")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- SIMULATION CONTROLS ---
-    col_ctrl, col_log = st.columns([2, 3])
+    # --- WORKSPACE LAYOUT ---
+    left_panel, right_panel = st.columns([2, 3])
 
-    with col_ctrl:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.subheader("⊹ ˖ Control Center ♡⸝⸝")
+    with left_panel:
+        st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+        st.subheader("⊹ ˖ Signal Control ♡⸝⸝")
         
-        signal_a = st.toggle("Primary Bus A (Input)", value=False)
-        signal_b = st.toggle("Primary Bus B (Input)", value=False)
+        col_sw1, col_sw2 = st.columns(2)
+        with col_sw1:
+            signal_a = st.toggle("Primary Bus A", value=False, help="Toggle Input A Signal")
+        with col_sw2:
+            signal_b = st.toggle("Primary Bus B", value=False, help="Toggle Input B Signal")
         
-        val_a, val_b = (1 if signal_a else 0), (1 if signal_b else 0)
+        bit_a, bit_b = int(signal_a), int(signal_b)
         
         st.divider()
-        st.write("Simulation Parameters")
-        gate_speed = st.select_slider("Gate Latency (ms)", options=[10, 50, 100, 200], value=50)
+        st.write("Advanced Parameters")
+        voltage = st.slider("Simulated Voltage (V)", 1.8, 5.0, 3.3)
+        frequency = st.select_slider("Clock Frequency", options=["1Hz", "10Hz", "100Hz", "1KHz"])
         
-        if st.button("Force Global Reset", use_container_width=True):
-            st.rerun()
+        if st.button("Clear System History"):
+            st.session_state.history_db = st.session_state.history_db.iloc[0:0]
+            log_event("History cleared by user.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with col_log:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.subheader("🖥️ Kernel Execution")
+    with right_panel:
+        st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+        st.subheader("🖥️ Hardware Execution Logs")
         
-        current_status = f"SIG_CHANGE: A={val_a} B={val_b} | Latency={gate_speed}ms"
-        add_log(current_status)
-        
-        st.markdown('<div class="console-header">System Backend Logs</div>', unsafe_allow_html=True)
-        log_content = "\\n".join(st.session_state.logs)
-        st.markdown(f'<div class="console-box">{log_content}</div>', unsafe_allow_html=True)
+        # Log Logic
+        current_state = f"SIGNAL_FLIP: A={bit_a}, B={bit_b} (V={voltage}V)"
+        if not st.session_state.system_logs or st.session_state.system_logs[-1][11:] != current_state:
+            log_event(current_state)
+            
+        logs_html = "<br>".join(st.session_state.system_logs)
+        st.markdown(f'<div class="terminal-box">{logs_html}</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # PROCESS LOGIC
-    results = processor.run_all(val_a, val_b)
-
-    # --- VISUALIZATION ENGINE ---
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.subheader("⚡ Live Schematic Visualization")
+    # Core Computation
+    results = logic_unit.process_signals(bit_a, bit_b)
     
-    # Custom Graphviz with High-Contrast Theming
-    schematic = graphviz.Digraph()
-    schematic.attr(rankdir='LR', bgcolor='transparent', splines='ortho')
-    schematic.attr('node', fontname='Quicksand', style='filled,rounded', 
-                  fontcolor='#5a3e5a', fontsize='12', fontweight='bold', 
-                  color='#ff69b4', penwidth='3')
-    schematic.attr('edge', color='#ffb6c1', penwidth='2', arrowhead='vee')
+    # Save to History
+    new_entry = pd.DataFrame([{
+        'Timestamp': datetime.datetime.now().strftime('%H:%M:%S'),
+        'A': bit_a, 'B': bit_b, 
+        'AND': results['AND'], 'OR': results['OR'], 'XOR': results['XOR']
+    }])
+    st.session_state.history_db = pd.concat([st.session_state.history_db, new_entry]).tail(10)
 
-    # Input Clusters
-    schematic.node('A', f'BUS A\\n[{val_a}]', shape='circle', 
-                  fillcolor='#ff69b4' if signal_a else '#ffd1dc')
-    schematic.node('B', f'BUS B\\n[{val_b}]', shape='circle', 
-                  fillcolor='#ff69b4' if signal_b else '#ffd1dc')
+    # --- SCHEMATIC VISUALIZATION ---
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    st.subheader("⚡ Live Schematic Flow Analysis")
+    
+    # High-Definition Graphviz Configuration
+    dot = graphviz.Digraph()
+    dot.attr(rankdir='LR', bgcolor='transparent', splines='ortho')
+    dot.attr('node', fontname='Quicksand', style='filled,rounded', 
+             fontcolor='#5a3e5a', color='#ff69b4', penwidth='3', fontsize='12')
+    dot.attr('edge', color='#ffb6c1', penwidth='2')
 
-    # Gate Architectures
-    with schematic.subgraph(name='cluster_processing') as cpu:
-        cpu.attr(label='Processing Unit', fontcolor='#d87093', color='#ffb6c1', style='dashed')
-        active_gates = ["AND", "OR", "XOR", "NAND", "NOR"]
-        for g in active_gates:
-            is_active = results[g] == 1
-            cpu.node(g, f'{g} GATE\\n({results[g]})', shape='rect', 
-                    fillcolor='#ffc0cb' if is_active else '#ffffff')
-            schematic.edge('A', g)
-            schematic.edge('B', g)
+    # I/O Definition
+    dot.node('A', f'INPUT A\\n({bit_a})', shape='doublecircle', fillcolor='#ff69b4' if signal_a else '#ffffff')
+    dot.node('B', f'INPUT B\\n({bit_b})', shape='doublecircle', fillcolor='#ff69b4' if signal_b else '#ffffff')
+    
+    # Processing Unit Subgraph
+    with dot.subgraph(name='cluster_gates') as c:
+        c.attr(label='Logic Gates Cluster', fontcolor='#d87093', style='dashed', color='#ffb6c1')
+        for gate in ["AND", "OR", "XOR", "NAND", "NOR", "XNOR"]:
+            is_active = results[gate] == 1
+            c.node(gate, f'{gate}\\nOUT: {results[gate]}', shape='rect', 
+                   fillcolor='#ffc0cb' if is_active else '#fdfcfc')
+            dot.edge('A', gate)
+            dot.edge('B', gate)
 
-    st.graphviz_chart(schematic, use_container_width=True)
+    st.graphviz_chart(dot, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- RESULTS MATRIX ---
-    st.subheader("⊹ ˖ Output Matrix Analysis ♡⸝⸝")
-    
-    # Primary Metrics
-    m_row1_1, m_row1_2, m_row1_3, m_row1_4 = st.columns(4)
-    m_row1_1.metric("AND Operation", results["AND"], help="Logic High only if A and B are High")
-    m_row1_2.metric("OR Operation", results["OR"], help="Logic High if any Input is High")
-    m_row1_3.metric("XOR Operation", results["XOR"], help="Logic High if Inputs differ")
-    m_row1_4.metric("NOT A (Inv)", results["NOT_A"], delta_color="inverse")
+    # --- PERFORMANCE METRICS ---
+    st.subheader("⊹ ˖ Digital Output Matrix ♡⸝⸝")
+    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+    m_col1.metric("AND GATE", results["AND"])
+    m_col2.metric("OR GATE", results["OR"])
+    m_col3.metric("XOR GATE", results["XOR"])
+    m_col4.metric("NOT A", results["NOT_A"])
 
-    # Secondary Metrics
-    st.markdown(" ")
-    m_row2_1, m_row2_2, m_row2_3, m_row2_4 = st.columns(4)
-    m_row2_1.metric("NAND Gate", results["NAND"])
-    m_row2_2.metric("NOR Gate", results["NOR"])
-    m_row2_3.metric("XNOR Gate", results["XNOR"])
-    m_row2_4.metric("NOT B (Inv)", results["NOT_B"], delta_color="inverse")
+    # Second Row of Metrics
+    m2_col1, m2_col2, m2_col3, m2_col4 = st.columns(4)
+    m2_col1.metric("NAND GATE", results["NAND"])
+    m2_col2.metric("NOR GATE", results["NOR"])
+    m2_col3.metric("XNOR GATE", results["XNOR"])
+    m2_col4.metric("NOT B", results["NOT_B"])
 
-    # --- SYSTEM FOOTER ---
+    # --- DATA ANALYTICS SECTION ---
     st.divider()
-    foot_l, foot_r = st.columns(2)
-    with foot_l:
-        st.caption("© 2026 Strawberry Logic Studio | Developed with Python & Love 🍓")
-    with foot_r:
-        st.markdown("<p style='text-align: right; opacity: 0.5;'>v4.2.1-STABLE-RELEASE</p>", unsafe_allow_html=True)
+    with st.expander("📊 View Signal History & Export Data"):
+        st.dataframe(st.session_state.history_db, use_container_width=True)
+        
+        # Buffer for export
+        csv = st.session_state.history_db.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download Session Data (CSV)",
+            data=csv,
+            file_name="logic_studio_export.csv",
+            mime='text/csv'
+        )
+
+    # Footer
+    st.markdown("<p style='text-align: center; opacity: 0.6;'>Strawberry Logic Engine v4.0.0 Stable | Python 3.10 Runtime</p>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
