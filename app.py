@@ -191,16 +191,27 @@ def main():
     st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
     st.subheader("⚡ Live Schematic Flow Analysis")
     
-    # High-Definition Graphviz Configuration
+    # --- STABILIZED CIRCUIT VISUALIZATION ---
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.subheader("⚡ Live Schematic Flow Analysis")
+
+    # Fixed container to prevent stretching on zoom
+    st.markdown("""
+        <div style="display: flex; justify-content: center; width: 100%;">
+            <div style="max-width: 800px; width: 100%; padding: 20px; background: rgba(255, 255, 255, 0.4); border-radius: 20px; border: 1px solid #ffb6c1;">
+    """, unsafe_allow_html=True)
+
     dot = graphviz.Digraph()
     dot.attr(rankdir='LR', bgcolor='transparent')
     dot.attr('node', fontname='Quicksand', style='filled,rounded', 
              fontcolor='#5a3e5a', color='#ff69b4', penwidth='3', fontsize='12')
     dot.attr('edge', color='#ffb6c1', penwidth='2')
 
+    # Input Nodes
     dot.node('A', f'INPUT A\n({bit_a})', shape='circle', fillcolor='#ff69b4' if signal_a else '#ffffff')
     dot.node('B', f'INPUT B\n({bit_b})', shape='circle', fillcolor='#ff69b4' if signal_b else '#ffffff')
     
+    # Logic Gates
     gates_to_show = ["AND", "OR", "XOR", "NAND", "NOR", "XNOR"]
     
     for gate in gates_to_show:
@@ -208,7 +219,10 @@ def main():
         dot.node(gate, f'{gate}\nOUT: {results[gate]}', shape='rect', fillcolor=active_color)
         dot.edge('A', gate)
         dot.edge('B', gate)
+
     st.graphviz_chart(dot, use_container_width=True)
+
+    st.markdown("</div></div>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --- PERFORMANCE METRICS ---
@@ -245,4 +259,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
