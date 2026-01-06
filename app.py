@@ -6,7 +6,7 @@ import time
 import base64
 
 st.set_page_config(
-    page_title="Strawberry Logic Studio Pro",
+    page_title="Tsunderee Logic Studio",
     page_icon="🍓",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -172,8 +172,8 @@ c_ui, c_wave = st.columns(2)
 with c_ui:
     with st.container(border=True):
         st.markdown("<h3 style='color: white;'>× × Secure Login 🍓</h3>", unsafe_allow_html=True)
-        st.text_input("Engineer Email", value="dev@strawberry.io", key="email_field")
-        st.text_input("Access Token", type="password", value="ST_KERNEL_2026", key="pass_field")
+        st.text_input("Engineer Email", value="dev@strawberry.com", key="email_field")
+        st.text_input("Access Token", type="password", value="Skibidi", key="pass_field")
         if st.button("Initialize Auth Sequence"):
             st.toast("System Online", icon="🍓")
         st.markdown("<p style='color: #ffb6c1; font-size: 0.8rem; margin-top: 15px; text-align: center;'>Heghe: 190 mΩ | 16s backout style</p>", unsafe_allow_html=True)
@@ -247,3 +247,4 @@ with t_perf:
     col_m3.metric("Junction Temp", f"{kernel.temp}°C", "Normal")
 
 st.markdown("<p style='text-align: center; color: white; opacity: 0.4; margin-top: 60px;'>st.mowkanel / strawberry-logic-final-v4.0.0</p>", unsafe_allow_html=True)
+
