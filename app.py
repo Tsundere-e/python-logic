@@ -188,9 +188,7 @@ def main():
     st.session_state.history_db = pd.concat([st.session_state.history_db, new_entry]).tail(10)
 
     # --- SHOWCASE ROW: LOGIN & SCHEMATIC ---
-    # Posicionado logo após o cálculo dos 'results'
     st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
-    
     col_l, col_r = st.columns([1, 1.2])
 
     with col_l:
@@ -223,9 +221,24 @@ def main():
         """, unsafe_allow_html=True)
         
         dot = graphviz.Digraph()
-        dot.attr(rankdir='LR', bgcolor='transparent', size='4,4!', ratio='fill')
-        dot.attr('node', fontname='Quicksand')
+        dot.attr(rankdir='LR', bgcolor='transparent', size='4,4')
+        dot.attr('node', fontname='Quicksand', style='filled,rounded', fontcolor='#5a3e5a', 
+                 color='#ff69b4', penwidth='2', fontsize='10', fixedsize='true', width='0.9', height='0.6')
+        dot.attr('edge', color='#ffb6c1', penwidth='1.5', arrowsize='0.7')
+
+        dot.node('A', f'IN A\n({bit_a})', shape='circle')
+        dot.node('B', f'IN B\n({bit_b})', shape='circle')
+        
+        for g in ["AND", "OR", "XOR", "NAND"]:
+            dot.node(g, f'{g}\n({results[g]})', shape='rect', fillcolor='#ffc0cb' if results[g] else '#ffffff')
+            dot.edge('A', g)
+            dot.edge('B', g)
+
+        st.graphviz_chart(dot, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
     
+    st.markdown('</div>', unsafe_allow_html=True)
+
     # --- PERFORMANCE METRICS ---
     st.subheader("⊹ ˖ Digital Output Matrix ♡⸝⸝")
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
@@ -260,9 +273,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
