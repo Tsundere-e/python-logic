@@ -1,3 +1,7 @@
+import streamlit as st
+import streamlit.components.v1 as components
+st.set_page_config(layout="wide", page_title="Strawberry Logic Studio")
+html_code = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -557,3 +561,6 @@
     </script>
 </body>
 </html>
+"""
+components.html(html_code, height=1200, scrolling=True)
+
