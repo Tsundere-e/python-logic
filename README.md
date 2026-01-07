@@ -2,6 +2,8 @@
 
 A high-performance, **aesthetic** Digital Logic Simulator. This project combines the power of **Python (Streamlit)** with a custom **JavaScript/Tailwind** engine to create a real-time hardware simulation experience.
 
+take a look here -> [https://tsundere.streamlit.app/#logic-gate-sim-strawberry-edition]
+
 ## ✨ Features
 
 * **Real-time Data Wave**: Dynamic voltage monitor using **Chart.js**.
