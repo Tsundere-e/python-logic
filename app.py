@@ -1,254 +1,559 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
-import datetime
-import time
-import base64
-
-st.set_page_config(
-    page_title="Tsunderee Logic Studio",
-    page_icon="🍓",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&family=Fira+Code:wght@400;500&display=swap');
-
-    .stApp {
-        background: linear-gradient(rgba(84, 55, 71, 0.9), rgba(84, 55, 71, 0.9)), 
-                    url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/download%20(15).jpg");
-        background-size: cover;
-        background-attachment: fixed;
-        font-family: 'Quicksand', sans-serif;
-    }
-
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(157, 109, 132, 0.65) !important;
-        border-radius: 40px !important;
-        padding: 35px !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.4) !important;
-        margin-bottom: 25px;
-    }
-
-    .stTextInput input {
-        background-color: white !important;
-        border-radius: 15px !important;
-        border: none !important;
-        height: 50px !important;
-        color: #8b4367 !important;
-        font-weight: 600 !important;
-        padding: 0 20px !important;
-    }
-
-    .stButton button {
-        background: white !important;
-        color: #ff69b4 !important;
-        border: none !important;
-        border-radius: 25px !important;
-        height: 55px !important;
-        width: 100% !important;
-        font-weight: 800 !important;
-        box-shadow: 0 5px 0px rgba(0,0,0,0.1) !important;
-        transition: 0.2s;
-    }
-
-    .stButton button:active {
-        transform: translateY(3px);
-        box-shadow: 0 2px 0px rgba(0,0,0,0.1) !important;
-    }
-
-    .wave-stage {
-        height: 380px;
-        background: rgba(0,0,0,0.25);
-        border-radius: 35px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .wave-wrapper {
-        position: absolute;
-        width: 100%; 
-        height: 100%;
-        z-index: 1;
-    }
-
-    .wave-tile {
-        width: 100%;
-        height: 100%;
-        background-image: url("https://raw.githubusercontent.com/Tsundere-e/python-logic/main/wave.gif");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        opacity: 0.6;
-        z-index: 1;
-    }
-
-    @keyframes waveScroll {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-    }
-
-    .berry-core {
-        font-size: 120px;
-        z-index: 10;
-        animation: floatBerry 3.5s ease-in-out infinite;
-        filter: drop-shadow(0 20px 30px rgba(0,0,0,0.4));
-    }
-
-    @keyframes floatBerry {
-        0%, 100% { transform: translateY(0) rotate(-3deg); }
-        50% { transform: translateY(-30px) rotate(3deg); }
-    }
-
-    .gate-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 15px;
-        margin-top: 25px;
-    }
-
-    .gate-card {
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 20px;
-        padding: 20px;
-        text-align: center;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(8px);
-    }
-
-    .gate-title { color: #ffb6c1; font-weight: 700; font-size: 0.9rem; margin-bottom: 5px; }
-    .gate-value { color: white; font-size: 2.2rem; font-weight: 900; }
-
-    .terminal-box {
-        background: #120a0e;
-        color: #ffb6c1;
-        font-family: 'Fira Code', monospace;
-        padding: 25px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        border-left: 6px solid #ff69b4;
-    }
-
-    .stSlider > div > div > div > div {
-        background: #ffb6c1 !important;
-    }
-
-    header, footer { visibility: hidden; }
-</style>
-""", unsafe_allow_html=True)
-
-class SiliconKernel:
-    def __init__(self, rail_v):
-        self.vcc = rail_v
-        self.threshold = rail_v * 0.65
-        self.temp = 32.8
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strawberry Logic Studio | Web Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
-    def read(self, v):
-        return 1 if v >= self.threshold else 0
+    <style>
+        /* Custom Font Application */
+        body { font-family: 'Quicksand', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
 
-    def compute(self, a, b):
-        return {
-            "AND": a & b, "OR": a | b, "XOR": a ^ b,
-            "NAND": int(not (a & b)), "NOR": int(not (a | b)),
-            "XNOR": int(not (a ^ b)), "NOT A": int(not a), "NOT B": int(not b),
-            "BUS A": a, "BUS B": b
+        /* Custom Scrollbar for Terminal */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(45, 27, 36, 0.1);
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #ff69b4;
+            border-radius: 4px;
         }
 
-if 'log_data' not in st.session_state: st.session_state.log_data = []
-if 'session_id' not in st.session_state: st.session_state.session_id = time.time()
+        /* Toggle Switch Styling */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #ff69b4;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #ff69b4;
+        }
+        
+        /* Slider Styling */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #ff69b4;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #fecfef;
+            border-radius: 2px;
+        }
 
-st.markdown("<h1 style='text-align: center; color: white; font-size: 3.5rem; margin-bottom: 20px;'>⊹ ˖ Strawberry Studio Pro ♡⸝⸝</h1>", unsafe_allow_html=True)
+        /* Card Hover Effects */
+        .logic-card {
+            transition: all 0.3s ease;
+        }
+        .logic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 105, 180, 0.2);
+        }
 
-c_ui, c_wave = st.columns(2)
+        /* Chart Container Specifics */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+    </style>
 
-with c_ui:
-    with st.container(border=True):
-        st.markdown("<h3 style='color: white;'>× × Secure Login 🍓</h3>", unsafe_allow_html=True)
-        st.text_input("Engineer Email", value="dev@strawberry.com", key="email_field")
-        st.text_input("Access Token", type="password", value="Skibidi", key="pass_field")
-        if st.button("Initialize Auth Sequence"):
-            st.toast("System Online", icon="🍓")
-        st.markdown("<p style='color: #ffb6c1; font-size: 0.8rem; margin-top: 15px; text-align: center;'>Heghe: 190 mΩ | 16s backout style</p>", unsafe_allow_html=True)
+    <!-- Chosen Palette: Strawberry Cream (Warm Neutral Background #FFF0F5, Accents #FF69B4, #8B4367) -->
+    <!-- Application Structure Plan: 
+         1. Header: Branding and Session Context.
+         2. Control Deck: Interactive Inputs (A, B, Voltage) & Terminal (Feedback Loop).
+         3. Visualization Layer: Real-time Signal Chart (replacing static CSS wave) & Logic Matrix (Grid of results).
+         4. Analytics: Tabular history of states.
+         RATIONALE: This structure separates "Inputs" from "Outputs", flowing logically from top to bottom. The user changes a setting, sees the visual wave change, then reads the specific logic gate results.
+    -->
+    <!-- Visualization & Content Choices:
+         1. Real-time Line Chart (Chart.js): Visualizes the "Pulse" (Voltage) over time. Goal: Show signal stability and magnitude.
+         2. Logic Grid (HTML/CSS): 8 cards representing boolean gates. Goal: Instant read of logic states.
+         3. Terminal (HTML/JS): Text-based log. Goal: Audit trail of user actions.
+         4. History Table (HTML/JS): Data persistence. Goal: Detailed analysis.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-[#FFF0F5] text-[#8b4367] min-h-screen selection:bg-pink-200">
 
-with c_wave:
-    with st.container(border=True):
-        st.markdown("<h3 style='color: white;'>× × Data Wave 🍓</h3>", unsafe_allow_html=True)
-        st.markdown("""
-            <div class="wave-stage">
-                <div class="wave-wrapper">
-                    <div class="wave-tile"></div>
-                    <div class="wave-tile"></div>
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        
+        <!-- HEADER SECTION -->
+        <header class="mb-10 text-center animate-fade-in">
+            <div class="inline-block bg-white border-2 border-pink-200 rounded-3xl px-8 py-6 shadow-lg shadow-pink-100/50">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <span class="text-4xl filter drop-shadow-md">🍓</span>
+                    <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#ff69b4] to-[#8b4367]">
+                        Strawberry Logic Studio
+                    </h1>
                 </div>
-                <div class="berry-core">🍓</div>
-                <div style="z-index: 10; text-align: center; color: white; margin-top: 15px;">
-                    <b style="font-size: 1.2rem; letter-spacing: 2px;">Pulse: STREAMING</b>
+                <p class="text-pink-400 font-bold tracking-wider text-sm uppercase">Hardware Simulation Framework v4.1.0 • Web Edition</p>
+            </div>
+            
+            <div class="mt-8 max-w-3xl mx-auto text-center">
+                <p class="text-[#8b4367]/80 leading-relaxed">
+                    Welcome to the <strong>Logic Studio Dashboard</strong>. This interactive application simulates digital logic gates and signal processing. 
+                    Use the <strong>Bus Control</strong> to manipulate input signals (A/B) and voltage. Observe the real-time <strong>Signal Wave</strong> 
+                    and analyze the resulting Boolean states in the <strong>Digital Matrix</strong> below.
+                </p>
+            </div>
+        </header>
+
+        <!-- MAIN CONTROL DECK -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+            
+            <!-- INPUT CONTROLS -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <div class="bg-white rounded-3xl p-6 border border-pink-100 shadow-xl shadow-pink-100/40 h-full flex flex-col justify-center">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2 border-b-2 border-pink-50 pb-2">
+                        <span>🎛️</span> Bus Control
+                    </h2>
+                    
+                    <!-- Toggle A -->
+                    <div class="flex items-center justify-between mb-6 group">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-lg">Bus Signal A</span>
+                            <span class="text-xs text-pink-300 group-hover:text-pink-400 transition-colors">Input Stream 0x01</span>
+                        </div>
+                        <div class="relative inline-block w-14 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggleA" class="toggle-checkbox absolute block w-8 h-8 rounded-full bg-white border-4 border-pink-200 appearance-none cursor-pointer transition-all duration-300 ease-in-out top-0 left-0 hover:border-pink-300"/>
+                            <label for="toggleA" class="toggle-label block overflow-hidden h-8 rounded-full bg-pink-100 cursor-pointer transition-colors duration-300"></label>
+                        </div>
+                    </div>
+
+                    <!-- Toggle B -->
+                    <div class="flex items-center justify-between mb-8 group">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-lg">Bus Signal B</span>
+                            <span class="text-xs text-pink-300 group-hover:text-pink-400 transition-colors">Input Stream 0x02</span>
+                        </div>
+                        <div class="relative inline-block w-14 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggleB" class="toggle-checkbox absolute block w-8 h-8 rounded-full bg-white border-4 border-pink-200 appearance-none cursor-pointer transition-all duration-300 ease-in-out top-0 left-0 hover:border-pink-300"/>
+                            <label for="toggleB" class="toggle-label block overflow-hidden h-8 rounded-full bg-pink-100 cursor-pointer transition-colors duration-300"></label>
+                        </div>
+                    </div>
+
+                    <!-- Voltage Slider -->
+                    <div class="mb-2">
+                        <div class="flex justify-between mb-2">
+                            <label for="voltageSlider" class="font-bold">Core Voltage (V)</label>
+                            <span id="voltageDisplay" class="font-mono text-[#ff69b4] font-bold bg-pink-50 px-2 rounded">3.3V</span>
+                        </div>
+                        <input type="range" min="1.2" max="5.0" step="0.1" value="3.3" id="voltageSlider" class="w-full h-2 bg-pink-100 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-xs text-pink-300 mt-1">
+                            <span>1.2V</span>
+                            <span>Logic Level</span>
+                            <span>5.0V</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
+            <!-- TERMINAL & STATUS -->
+            <div class="lg:col-span-8">
+                <div class="bg-[#2d1b24] text-pink-100 rounded-3xl p-6 shadow-xl shadow-pink-900/10 h-full flex flex-col border-l-8 border-[#ff69b4]">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2 font-mono text-[#ff69b4]">
+                        <span>>_</span> System Terminal
+                    </h2>
+                    <div id="terminal-output" class="font-mono text-sm overflow-y-auto flex-grow custom-scroll h-48 lg:h-auto space-y-2 p-2">
+                        <div class="opacity-50">System Initialized...</div>
+                        <div class="opacity-50">Loading Strawberry Kernel...</div>
+                        <div class="text-[#ff69b4]">Ready. Waiting for input signal.</div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-pink-900/50 flex justify-between items-center text-xs opacity-60 font-mono">
+                        <span>STATUS: ACTIVE</span>
+                        <span id="clock-display">00:00:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-with st.container(border=True):
-    st.markdown("<h3 style='color: white; text-align: center; margin-bottom: 30px;'>× × Physical Rail & Bus Control × ×</h3>", unsafe_allow_html=True)
-    vcc_sel = st.select_slider("Select System VCC Rail (Voltage)", options=[1.2, 1.8, 3.3, 5.0, 12.0], value=3.3)
-    
-    col_a, col_b = st.columns(2)
-    bus_a_v = col_a.slider("Bus A Signal Injection (V)", 0.0, vcc_sel, vcc_sel)
-    bus_b_v = col_b.slider("Bus B Signal Injection (V)", 0.0, vcc_sel, 0.0)
-    
-    kernel = SiliconKernel(vcc_sel)
-    bit_a = kernel.read(bus_a_v)
-    bit_b = kernel.read(bus_b_v)
-    
-    res_matrix = kernel.compute(bit_a, bit_b)
-    
-    entry = {**res_matrix, "VCC": vcc_sel, "A_V": bus_a_v, "B_V": bus_b_v, "TS": datetime.datetime.now().strftime("%H:%M:%S")}
-    st.session_state.log_data.append(entry)
-    if len(st.session_state.log_data) > 100: st.session_state.log_data.pop(0)
+        <!-- VISUALIZATION LAYER -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+            
+            <!-- WAVEFORM CHART -->
+            <div class="lg:col-span-8 bg-white rounded-3xl p-6 border border-pink-100 shadow-xl shadow-pink-100/40">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-[#8b4367]">🍓 Data Wave Monitor</h2>
+                        <p class="text-sm text-pink-400">Real-time voltage output analysis</p>
+                    </div>
+                    <div class="flex gap-2 text-xs font-bold">
+                        <span class="px-2 py-1 bg-pink-50 rounded text-pink-500">Live Feed</span>
+                        <span class="px-2 py-1 bg-pink-50 rounded text-pink-500">100ms Polling</span>
+                    </div>
+                </div>
+                
+                <!-- Chart Container -->
+                <div class="chart-container">
+                    <canvas id="waveformChart"></canvas>
+                </div>
+                
+                <div class="mt-4 flex justify-center gap-8 text-sm font-bold text-[#8b4367]">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-[#ff69b4]"></span> Output Signal
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-[#fecfef]"></span> Threshold
+                    </div>
+                </div>
+            </div>
 
-    st.markdown('<div class="gate-grid">', unsafe_allow_html=True)
-    for g, v in res_matrix.items():
-        st.markdown(f'<div class="gate-card"><div class="gate-title">{g}</div><div class="gate-value">{v}</div></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+            <!-- QUICK STATS -->
+            <div class="lg:col-span-4 flex flex-col gap-4">
+                <div class="bg-gradient-to-br from-[#ff9a9e] to-[#fecfef] rounded-3xl p-6 text-white shadow-lg h-full flex flex-col justify-center items-center text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                        <div class="w-20 h-20 bg-white rounded-full absolute -top-10 -left-10"></div>
+                        <div class="w-40 h-40 bg-white rounded-full absolute bottom-10 -right-10"></div>
+                    </div>
+                    
+                    <span class="text-6xl mb-4 transform hover:scale-110 transition-transform cursor-default">🍓</span>
+                    <h3 class="text-2xl font-bold mb-1">Signal Pulse</h3>
+                    <div id="pulse-status" class="text-4xl font-black bg-white/20 px-6 py-2 rounded-xl backdrop-blur-sm mb-2">LOW</div>
+                    <p class="text-sm opacity-90">Combined Logic Gate Intensity</p>
+                </div>
+            </div>
+        </div>
 
-st.markdown("<br>", unsafe_allow_html=True)
-t_sys, t_data, t_perf = st.tabs(["📟 Terminal", "📊 History", "🌡️ Analytics"])
+        <!-- DIGITAL MATRIX (LOGIC GRID) -->
+        <section class="mb-12">
+            <div class="flex items-center justify-center gap-4 mb-8">
+                <div class="h-px bg-pink-200 flex-grow max-w-xs"></div>
+                <h2 class="text-2xl font-bold text-center text-[#8b4367]">⊹ ˖ Digital Matrix Results ♡⸝⸝</h2>
+                <div class="h-px bg-pink-200 flex-grow max-w-xs"></div>
+            </div>
 
-with t_sys:
-    uptime_s = int(time.time() - st.session_state.session_id)
-    st.markdown(f"""
-    <div class="terminal-box">
-        $ strawberry_kernel --status<br>
-        > VOLTAGE_RAIL: {vcc_sel}V | THRESHOLD: {kernel.threshold:.2f}V<br>
-        > SIGNAL_A: {bus_a_v}V (LOGIC {bit_a}) | SIGNAL_B: {bus_b_v}V (LOGIC {bit_b})<br>
-        > UPTIME: {uptime_s}s | KERNEL_TEMP: {kernel.temp:.2f}°C<br>
-        > STATUS: STABLE_OPERATIONAL
+            <p class="text-center text-pink-400 mb-8 max-w-2xl mx-auto">
+                This matrix displays the computed Boolean outputs based on the current states of <strong>Input A</strong> and <strong>Input B</strong>. 
+                Values are calculated instantly by the client-side Strawberry Engine.
+            </p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Gate Cards generated dynamically or static structure updated by JS -->
+                <div class="logic-card bg-white p-6 rounded-[2rem] border-4 border-pink-100 text-center shadow-sm" id="card-AND">
+                    <div class="text-xl font-bold text-[#8b4367] mb-2">AND</div>
+                    <div class="gate-value text-4xl font-bold text-[#ff69b4]">0</div>
+                </div>
+                <div class="logic-card bg-white p-6 rounded-[2rem] border-4 border-pink-100 text-center shadow-sm" id="card-OR">
+                    <div class="text-xl font-bold text-[#8b4367] mb-2">OR</div>
+                    <div class="gate-value text-4xl font-bold text-[#ff69b4]">0</div>
+                </div>
+                <div class="logic-card bg-white p-6 rounded-[2rem] border-4 border-pink-100 text-center shadow-sm" id="card-XOR">
+                    <div class="text-xl font-bold text-[#8b4367] mb-2">XOR</div>
+                    <div class="gate-value text-4xl font-bold text-[#ff69b4]">0</div>
+                </div>
+                <div class="logic-card bg-white p-6 rounded-[2rem] border-4 border-pink-100 text-center shadow-sm" id="card-NAND">
+                    <div class="text-xl font-bold text-[#8b4367] mb-2">NAND</div>
+                    <div class="gate-value text-4xl font-bold text-[#ff69b4]">1</div>
+                </div>
+                <div class="logic-card bg-white p-6 rounded-[2rem] border-4 border-pink-100 text-center shadow-sm" id="card-NOR">
+                    <div class="text-xl font-bold text-[#8b4367] mb-2">NOR</div>
+                    <div class="gate-value text-4xl font-bold text-[#ff69b4]">1</div>
+                </div>
+                <div class="logic-card bg-white p-6 rounded-[2rem] border-4 border-pink-100 text-center shadow-sm" id="card-XNOR">
+                    <div class="text-xl font-bold text-[#8b4367] mb-2">XNOR</div>
+                    <div class="gate-value text-4xl font-bold text-[#ff69b4]">1</div>
+                </div>
+                <div class="logic-card bg-white p-6 rounded-[2rem] border-4 border-pink-100 text-center shadow-sm" id="card-NOTA">
+                    <div class="text-xl font-bold text-[#8b4367] mb-2">NOT A</div>
+                    <div class="gate-value text-4xl font-bold text-[#ff69b4]">1</div>
+                </div>
+                <div class="logic-card bg-white p-6 rounded-[2rem] border-4 border-pink-100 text-center shadow-sm" id="card-NOTB">
+                    <div class="text-xl font-bold text-[#8b4367] mb-2">NOT B</div>
+                    <div class="gate-value text-4xl font-bold text-[#ff69b4]">1</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DATA HISTORY SECTION -->
+        <section class="bg-white rounded-3xl p-8 border border-pink-100 shadow-xl shadow-pink-100/30">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-[#8b4367] flex items-center gap-2">
+                        📊 Logic History Log
+                    </h2>
+                    <p class="text-sm text-pink-400">Record of state changes and outputs</p>
+                </div>
+                <button onclick="clearHistory()" class="px-4 py-2 bg-pink-50 text-pink-500 rounded-xl text-sm font-bold hover:bg-pink-100 transition-colors">
+                    Clear Log
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-xs font-bold text-pink-400 uppercase tracking-wider border-b-2 border-pink-100">
+                            <th class="p-3">Timestamp</th>
+                            <th class="p-3">Bus A</th>
+                            <th class="p-3">Bus B</th>
+                            <th class="p-3">Voltage</th>
+                            <th class="p-3">Primary Output (AND)</th>
+                            <th class="p-3">Inverted (NAND)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body" class="text-sm font-mono text-[#8b4367]">
+                        <!-- JS injected rows -->
+                    </tbody>
+                </table>
+                <div id="empty-state" class="text-center py-8 text-pink-300 italic">No activity recorded yet. Change inputs to generate data.</div>
+            </div>
+        </section>
+
+        <footer class="text-center py-12 text-pink-300 text-sm font-medium">
+            <p>st.mowkanel / python-logic • Professional Build • 2026</p>
+            <p class="mt-2 text-xs">Generated Interactive Dashboard Prototype</p>
+        </footer>
+
     </div>
-    """, unsafe_allow_html=True)
 
-with t_data:
-    if st.session_state.log_data:
-        df_logs = pd.DataFrame(st.session_state.log_data)
-        st.dataframe(df_logs.tail(20), use_container_width=True)
-        st.download_button("Export Data Dump", df_logs.to_csv(index=False).encode('utf-8'), "logic_dump.csv")
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- 1. CONFIGURATION & STATE ---
+        const state = {
+            a: 0,
+            b: 0,
+            voltage: 3.3,
+            history: [],
+            chartData: Array(20).fill(0) // Initial chart buffer
+        };
 
-with t_perf:
-    col_m1, col_m2, col_m3 = st.columns(3)
-    col_m1.metric("Rail Stability", "99.98%")
-    col_m2.metric("Power Draw", f"{(vcc_sel * 0.12):.2f} mW")
-    col_m3.metric("Junction Temp", f"{kernel.temp}°C", "Normal")
+        // --- 2. THE STRAWBERRY LOGIC ENGINE ---
+        class StrawberryEngine {
+            static compute(a, b) {
+                const iA = a ? 1 : 0;
+                const iB = b ? 1 : 0;
+                return {
+                    "AND": iA & iB,
+                    "OR": iA | iB,
+                    "XOR": iA ^ iB,
+                    "NAND": Number(!(iA & iB)),
+                    "NOR": Number(!(iA | iB)),
+                    "XNOR": Number(iA === iB),
+                    "NOTA": Number(!iA),
+                    "NOTB": Number(!iB)
+                };
+            }
+        }
 
-st.markdown("<p style='text-align: center; color: white; opacity: 0.4; margin-top: 60px;'>st.mowkanel / strawberry-logic-final-v4.0.0</p>", unsafe_allow_html=True)
+        // --- 3. UI CONTROLLERS ---
+        const ui = {
+            toggleA: document.getElementById('toggleA'),
+            toggleB: document.getElementById('toggleB'),
+            sliderV: document.getElementById('voltageSlider'),
+            voltageDisplay: document.getElementById('voltageDisplay'),
+            terminal: document.getElementById('terminal-output'),
+            clock: document.getElementById('clock-display'),
+            pulseStatus: document.getElementById('pulse-status'),
+            historyBody: document.getElementById('history-body'),
+            emptyState: document.getElementById('empty-state'),
+            
+            cards: {
+                "AND": document.getElementById('card-AND'),
+                "OR": document.getElementById('card-OR'),
+                "XOR": document.getElementById('card-XOR'),
+                "NAND": document.getElementById('card-NAND'),
+                "NOR": document.getElementById('card-NOR'),
+                "XNOR": document.getElementById('card-XNOR'),
+                "NOTA": document.getElementById('card-NOTA'),
+                "NOTB": document.getElementById('card-NOTB'),
+            }
+        };
 
+        // --- 4. CHART INITIALIZATION ---
+        const ctx = document.getElementById('waveformChart').getContext('2d');
+        const waveformChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(20).fill(''),
+                datasets: [{
+                    label: 'Signal Intensity (V)',
+                    data: state.chartData,
+                    borderColor: '#ff69b4',
+                    backgroundColor: 'rgba(255, 105, 180, 0.2)',
+                    borderWidth: 3,
+                    tension: 0.4, // Smooth curves for organic wave feel
+                    fill: true,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 800,
+                    easing: 'linear'
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 6,
+                        grid: { color: '#fff0f5' },
+                        ticks: { color: '#8b4367', font: { family: 'Fira Code' } }
+                    },
+                    x: {
+                        display: false // Hide time axis for clean wave look
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#8b4367',
+                        bodyColor: '#ff69b4',
+                        borderColor: '#ffb6c1',
+                        borderWidth: 2,
+                        callbacks: {
+                            label: function(context) {
+                                return `Voltage: ${context.parsed.y}V`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
+        // --- 5. CORE LOGIC FUNCTIONS ---
+        function updateLogic() {
+            // Update State
+            state.a = ui.toggleA.checked;
+            state.b = ui.toggleB.checked;
+            state.voltage = parseFloat(ui.sliderV.value);
+            
+            // Update UI Labels
+            ui.voltageDisplay.innerText = state.voltage.toFixed(1) + "V";
 
+            // Compute Logic
+            const results = StrawberryEngine.compute(state.a, state.b);
+            
+            // Update Matrix Cards
+            Object.keys(results).forEach(key => {
+                const card = ui.cards[key];
+                const valueDiv = card.querySelector('.gate-value');
+                const val = results[key];
+                
+                valueDiv.innerText = val;
+                
+                // Visual feedback for High/Low
+                if(val === 1) {
+                    card.style.borderColor = '#ff69b4';
+                    valueDiv.style.textShadow = '0 0 10px rgba(255,105,180,0.5)';
+                } else {
+                    card.style.borderColor = '#fff0f5'; // Light pink border
+                    valueDiv.style.textShadow = 'none';
+                }
+            });
 
+            // Update Pulse Status text
+            const isHigh = state.a || state.b;
+            ui.pulseStatus.innerText = isHigh ? "HIGH" : "LOW";
+            ui.pulseStatus.style.color = isHigh ? "#ff69b4" : "#8b4367";
 
+            // Log to Terminal
+            logToTerminal(`Input Change detected: A=${Number(state.a)} B=${Number(state.b)} V=${state.voltage}`);
+            
+            // Add to History
+            addToHistory(results);
+            
+            // Update Chart Data (Immediate spike visual)
+            updateChart();
+        }
+
+        function updateChart() {
+            // Logic for visual wave: If A or B is on, signal = voltage. Else ~0.2 (noise)
+            const noise = (Math.random() * 0.2);
+            const signalLevel = (state.a || state.b) ? state.voltage : 0.2 + noise;
+            
+            // Shift array
+            state.chartData.shift();
+            state.chartData.push(signalLevel);
+            
+            waveformChart.data.datasets[0].data = state.chartData;
+            waveformChart.update('none'); // 'none' mode for performance
+        }
+
+        // --- 6. UTILITY FUNCTIONS ---
+        function logToTerminal(msg) {
+            const time = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.innerHTML = `<span class="opacity-50">[${time}]</span> ${msg}`;
+            ui.terminal.appendChild(line);
+            ui.terminal.scrollTop = ui.terminal.scrollHeight;
+        }
+
+        function addToHistory(results) {
+            const time = new Date().toLocaleTimeString();
+            const row = document.createElement('tr');
+            row.className = "border-b border-pink-50 hover:bg-pink-50/50 transition-colors";
+            
+            row.innerHTML = `
+                <td class="p-3 opacity-70">${time}</td>
+                <td class="p-3 font-bold ${state.a ? 'text-pink-500' : 'text-gray-400'}">${state.a ? '1' : '0'}</td>
+                <td class="p-3 font-bold ${state.b ? 'text-pink-500' : 'text-gray-400'}">${state.b ? '1' : '0'}</td>
+                <td class="p-3">${state.voltage}V</td>
+                <td class="p-3">${results['AND']}</td>
+                <td class="p-3">${results['NAND']}</td>
+            `;
+            
+            // Insert at top
+            ui.historyBody.insertBefore(row, ui.historyBody.firstChild);
+            
+            // Limit history rows
+            if(ui.historyBody.children.length > 10) {
+                ui.historyBody.removeChild(ui.historyBody.lastChild);
+            }
+
+            ui.emptyState.style.display = 'none';
+        }
+
+        function clearHistory() {
+            ui.historyBody.innerHTML = '';
+            ui.emptyState.style.display = 'block';
+            logToTerminal("System Log Cleared.");
+        }
+
+        function updateClock() {
+            ui.clock.innerText = new Date().toLocaleTimeString();
+        }
+
+        // --- 7. EVENT LISTENERS ---
+        ui.toggleA.addEventListener('change', updateLogic);
+        ui.toggleB.addEventListener('change', updateLogic);
+        ui.sliderV.addEventListener('input', () => {
+            ui.voltageDisplay.innerText = parseFloat(ui.sliderV.value).toFixed(1) + "V";
+        });
+        ui.sliderV.addEventListener('change', updateLogic); // Trigger logic update on release
+
+        // Animation Loop for living chart (Heartbeat effect)
+        setInterval(() => {
+            // Even if inputs don't change, we want the chart to scroll slightly or show noise
+            updateChart();
+        }, 800);
+
+        setInterval(updateClock, 1000);
+
+        // --- 8. INITIALIZATION ---
+        window.onload = () => {
+            logToTerminal("Hardware Connection Established.");
+            updateLogic();
+        };
+
+    </script>
+</body>
+</html>
